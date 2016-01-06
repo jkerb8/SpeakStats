@@ -18,6 +18,13 @@
         android:contentDescription="@string/speak"
         android:src="@android:drawable/ic_btn_speak_now" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Export"
+        android:id="@+id/exportButton"
+        android:layout_gravity="center_horizontal" />
+
     <TextView
         android:id="@+id/txtText"
         android:layout_width="fill_parent"

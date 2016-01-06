@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.RecognitionService;
 import android.util.Log;
@@ -32,10 +33,9 @@ public class MainActivity extends Activity {
     protected static final int RESULT_SPEECH = 1;
 
     private ImageButton btnSpeak;
-    private Button export;
+    private Button exportButton;
     private TextView txtText;
     public ArrayList<String> playList;
-    public File writer;
     int counter = 0;
     String csvname = "play_list.csv";
     FileOutputStream outputStream;
@@ -49,9 +49,10 @@ public class MainActivity extends Activity {
 
         //File directory = getFilesDir();
         // Create a new output file stream
-        File csvFile = new File(this.getFilesDir(), csvname);
+        final File csvFile = new File(this.getFilesDir(), csvname);
 
         txtText = (TextView) findViewById(R.id.txtText);
+        exportButton = (Button) findViewById(R.id.exportButton);
 
         //txtText.setText("This is where this text will be.");
 
@@ -79,6 +80,20 @@ public class MainActivity extends Activity {
             }
         });
 
+        exportButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+
+                String downloadsDir = downloads.getName();
+                String currentDirectory = csvFile.getParent();
+
+                copyFile(currentDirectory, csvname, downloadsDir);
+
+            }
+        });
+
     }
 
     @Override
@@ -100,7 +115,7 @@ public class MainActivity extends Activity {
 
                     txtText.setText(text.get(0));
                     playList.add(text.get(0));
-                    String output = text.get(0) + " , " + String.valueOf(++counter);
+                    String output = text.get(0) + " , " + String.valueOf(++counter) + "\n";
                     try {
                         outputStream = openFileOutput(csvname, Context.MODE_PRIVATE);
                         outputStream.write(output.getBytes());
@@ -154,5 +169,4 @@ public class MainActivity extends Activity {
 
     }
 
-    //copyFile(currentDirectory, "play_list.csv", DownloadsFolder);
 }
