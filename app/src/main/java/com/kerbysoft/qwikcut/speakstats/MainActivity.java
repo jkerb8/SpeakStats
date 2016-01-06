@@ -2,6 +2,7 @@ package com.kerbysoft.qwikcut.speakstats;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
@@ -19,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -36,6 +38,7 @@ public class MainActivity extends Activity {
     public File writer;
     int counter = 0;
     String csvname = "play_list.csv";
+    FileOutputStream outputStream;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,9 +47,9 @@ public class MainActivity extends Activity {
 
         playList = new ArrayList<String>();
 
-        File directory = getFilesDir();
-        writer = new File(directory, csvname);
-
+        //File directory = getFilesDir();
+        // Create a new output file stream
+        File csvFile = new File(this.getFilesDir(), csvname);
 
         txtText = (TextView) findViewById(R.id.txtText);
 
@@ -97,7 +100,14 @@ public class MainActivity extends Activity {
 
                     txtText.setText(text.get(0));
                     playList.add(text.get(0));
-                    writer.println(text.get(0) + " , " + String.valueOf(++counter));
+                    String output = text.get(0) + " , " + String.valueOf(++counter);
+                    try {
+                        outputStream = openFileOutput(csvname, Context.MODE_PRIVATE);
+                        outputStream.write(output.getBytes());
+                        outputStream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 break;
             }
