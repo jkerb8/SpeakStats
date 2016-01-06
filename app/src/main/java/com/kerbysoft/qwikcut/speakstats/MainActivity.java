@@ -86,11 +86,16 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
-                String downloadsDir = downloads.getName();
-                String currentDirectory = csvFile.getParent();
+                String downloadsDir = downloads.getAbsolutePath();
+                String currentDirectory = csvFile.getParent() + "/";
 
-                copyFile(currentDirectory, csvname, downloadsDir);
-
+                try {
+                    copyFile(currentDirectory, csvname, downloadsDir);
+                } catch (Exception a) {
+                    Toast t = Toast.makeText(getApplicationContext(),
+                            "Uh oh. Export Failed!", Toast.LENGTH_SHORT);
+                    t.show();
+                }
             }
         });
 
