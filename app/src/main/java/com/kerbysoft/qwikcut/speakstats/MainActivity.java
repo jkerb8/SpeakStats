@@ -28,43 +28,60 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnClickListener {
 
     protected static final int RESULT_SPEECH = 1;
 
-    private ImageButton btnSpeak;
-    private Button exportButton;
-    private TextView txtText;
+    //private ImageButton btnSpeak;
+    //private Button exportButton;
+    //private TextView txtText;
     public ArrayList<String> playList;
+    public ArrayList<String> csvList;
+    public ArrayList<String> statsList;
     int counter = 0;
-    String csvname = "play_list.csv";
+    String csvplaylist = "play_list.csv";
+    String csvstatslist = "stats_list.csv";
     FileOutputStream outputStream;
+    String gamename = "Game1";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        ImageButton btnSpeak;
+        Button exportButton;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         playList = new ArrayList<String>();
+        csvList = new ArrayList<String>();
+        statsList = new ArrayList<String>();
 
         //File directory = getFilesDir();
         // Create a new output file stream
-        final File csvFile = new File(this.getFilesDir(), csvname);
 
-        txtText = (TextView) findViewById(R.id.txtText);
+
+
         exportButton = (Button) findViewById(R.id.exportButton);
 
         //txtText.setText("This is where this text will be.");
 
         btnSpeak = (ImageButton) findViewById(R.id.btnSpeak);
 
-        btnSpeak.setOnClickListener(new View.OnClickListener() {
+        btnSpeak.setOnClickListener(this);
 
-            @Override
-            public void onClick(View v) {
+        exportButton.setOnClickListener(this);
 
-                Intent intent = new Intent(
-                        RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        File folder = new File(this.getFilesDir() + "/" + gamename);
+
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+    }
+
+    public void onClick(View v){
+        switch(v.getId()){
+            case R.id.btnSpeak: {
+
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
 
@@ -72,33 +89,69 @@ public class MainActivity extends Activity {
                     startActivityForResult(intent, RESULT_SPEECH);
                     //txtText.setText("");
                 } catch (ActivityNotFoundException a) {
-                    Toast t = Toast.makeText(getApplicationContext(),
-                            "Opps! Your device doesn't support Speech to Text",
-                            Toast.LENGTH_SHORT);
+                    Toast t = Toast.makeText(getApplicationContext(), "Oops! Your device doesn't support Speech to Text", Toast.LENGTH_SHORT);
                     t.show();
                 }
+                break;
             }
-        });
+            case R.id.exportButton: {
 
-        exportButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
+                File csvFile = new File(this.getFilesDir() + "/" + gamename + "/", csvplaylist);
+                File statsFile = new File(this.getFilesDir() + "/" + gamename + "/", csvstatslist);
                 File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
                 String downloadsDir = downloads.getAbsolutePath();
                 String currentDirectory = csvFile.getParent() + "/";
 
-                try {
-                    copyFile(currentDirectory, csvname, downloadsDir);
-                } catch (Exception a) {
-                    Toast t = Toast.makeText(getApplicationContext(),
-                            "Uh oh. Export Failed!", Toast.LENGTH_SHORT);
-                    t.show();
-                }
-            }
-        });
+                statsList = AnalyzeText(playList);
 
+                for (int i=0; i<2; i++) {
+                    String filename = "";
+                    ArrayList<String> tempList = new ArrayList<String>();
+
+                    switch (i) {
+                        case 0:
+                            filename = csvplaylist;
+                            tempList = csvList;
+                            break;
+                        case 1:
+                            filename = csvstatslist;
+                            tempList = statsList;
+                            break;
+                    }
+
+
+                    try {
+                        outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    for(String output: tempList) {
+                        try {
+                            outputStream.write(output.getBytes());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        copyFile(currentDirectory, csvplaylist, downloadsDir);
+                    } catch (Exception a) {
+                        Toast t = Toast.makeText(getApplicationContext(), "Uh oh. Export Failed!", Toast.LENGTH_SHORT);
+                        t.show();
+                    }
+                }
+
+
+                break;
+            }
+        }
     }
 
     @Override
@@ -110,24 +163,18 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        TextView txtText = (TextView) findViewById(R.id.txtText);
 
         switch (requestCode) {
             case RESULT_SPEECH: {
                 if (resultCode == RESULT_OK && null != data) {
 
-                    ArrayList<String> text = data
-                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    ArrayList<String> text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
 
                     txtText.setText(text.get(0));
                     playList.add(text.get(0));
-                    String output = text.get(0) + " , " + String.valueOf(++counter) + "\n";
-                    try {
-                        outputStream = openFileOutput(csvname, Context.MODE_PRIVATE);
-                        outputStream.write(output.getBytes());
-                        outputStream.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    csvList.add(text.get(0) + " , " + String.valueOf(++counter) + "\n");
+
                 }
                 break;
             }
@@ -145,7 +192,9 @@ public class MainActivity extends Activity {
             File dir = new File (outputPath);
             if (!dir.exists())
             {
-                dir.mkdirs();
+                //dir.mkdirs();
+                Toast t = Toast.makeText(getApplicationContext(), "Downloads directory could not be found!", Toast.LENGTH_SHORT);
+                t.show();
             }
 
 
@@ -172,6 +221,166 @@ public class MainActivity extends Activity {
             Log.e("tag", e.getMessage());
         }
 
+    }
+
+    ArrayList<String> AnalyzeText(ArrayList<String> playList) {
+        ArrayList<String> returnList = new ArrayList<String>();
+        //ArrayList<String> type = new ArrayList<String>();
+        /*for (int i=0; i<9; i++) {
+            switch (i) {
+                case 0:
+                    type.add("Run");
+                    break;
+                case 1:
+                    type.add("Pass");
+                    break;
+                case 2:
+                    type.add("Kick");
+                    break;
+                case 3:
+                    type.add("Punt");
+                    break;
+                case 4:
+                    type.add("Kick Return");
+                    break;
+                case 5:
+                    type.add("Punt Return");
+                    break;
+                case 6:
+                    type.add("Field Goal");
+                    break;
+                case 7:
+                    type.add("PAT");
+                    break;
+                case 8:
+                    type.add("2 Point Conv.");
+                    break;
+                default:
+                    break;
+            }
+        }*/
+
+        Integer playnum = 1, playerNumber = 0, recNumber, downNum = 1, dist = 10, ydLn = 20, gnLs = 0, qtr = 1, recFlag, lossFlag;
+        String prevWord = "", playType = "", addition = "";
+
+
+        for (String temp : playList) {
+            temp = temp.toLowerCase();
+            System.out.println(temp);
+
+            String[] words = temp.split("\\s+");
+            recFlag = 0;
+            lossFlag = 0;
+            recNumber = 0;
+
+            for(int m=0; m<words.length; m++){
+                String curWord = words[m];
+                System.out.println(curWord + ", " + prevWord);
+
+                if (prevWord == "and") {
+                    if(curWord.charAt(0)=='4'){
+                        playType = "Run";
+                        curWord = '0' + curWord.substring(1);
+                    }
+                }
+
+                if ((curWord == "passed") || (curWord == "past") || (curWord == "pass")) {
+                    playType = "Pass";
+                    prevWord = curWord;
+                    m++;
+                    recFlag = 1;
+                    continue;
+                }
+
+                if ((curWord == "ran") || (curWord == "ranch") || (curWord == "run") || (curWord == "ram") || (curWord == "grand")) {
+                    playType = "Run";
+                    prevWord = curWord;
+                    m++;
+                    continue;
+                }
+
+                if (curWord == "loss") {
+                    lossFlag = 1;
+                    continue;
+                }
+
+                if ((curWord == "yards") || (curWord == "yard") || (curWord == "lard")) {
+                    gnLs = intParse(prevWord);
+                    if (lossFlag == 1) {
+                        gnLs = gnLs * -1;
+                    }
+                    else
+                        continue;
+                }
+
+                if ((prevWord == "number") || (prevWord == "player")) {
+                    if (curWord == "number") {
+                        continue;
+                    }
+                    if (recFlag == 1) {
+                        recNumber = intParse(curWord);
+                    } else {
+                        playerNumber = intParse(curWord);
+                    }
+                }
+
+
+                /*for(int n=0; n<words[m].length(); n++){
+                    }*/
+
+
+                prevWord = curWord;
+
+            }
+            addition = String.valueOf(playnum) + " , " + playType + " , " + String.valueOf(playerNumber) + " , " + String.valueOf(recNumber) + " , "
+                    + String.valueOf(downNum) + " , " + String.valueOf(dist) + " , " + String.valueOf(ydLn) + " , " + String.valueOf(gnLs) + " , " +
+                    String.valueOf(qtr) + "\n";
+            returnList.add(addition);
+
+            playnum++;
+        }
+
+
+        return returnList;
+    }
+
+    Integer intParse(String word) {
+        Integer number;
+
+        switch (word) {
+            case "won":
+                number = 1;
+                break;
+            case "one":
+                number = 1;
+                break;
+            case "two":
+                number = 2;
+                break;
+            case "to":
+                number = 2;
+                break;
+            case "too":
+                number = 2;
+                break;
+            case "for":
+                number = 4;
+                break;
+            case "fore":
+                number = 4;
+                break;
+            case "four":
+                number = 4;
+                break;
+            case "ate":
+                number = 8;
+                break;
+            default:
+                number = Integer.parseInt(word);
+                break;
+        }
+
+        return number;
     }
 
 }
