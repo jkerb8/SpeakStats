@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 
@@ -43,6 +44,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     String csvstatslist = "stats_list.csv";
     FileOutputStream outputStream;
     String gamename = "Game1";
+    static final String logtag = "MyLogTag";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,11 +72,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         exportButton.setOnClickListener(this);
 
-        File folder = new File(this.getFilesDir() + "/" + gamename);
+        String dirPath = getFilesDir().getAbsolutePath() + File.separator + gamename;
 
-        if (!folder.exists()) {
-            folder.mkdir();
-        }
+        File projDir = new File(dirPath);
+        if (!projDir.exists())
+            projDir.mkdirs();
     }
 
     public void onClick(View v){
@@ -96,12 +98,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
             case R.id.exportButton: {
 
-                File csvFile = new File(this.getFilesDir() + "/" + gamename + "/", csvplaylist);
-                File statsFile = new File(this.getFilesDir() + "/" + gamename + "/", csvstatslist);
+                String dirPath = getFilesDir().getAbsolutePath() + File.separator + gamename;
+                File csvFile = new File(dirPath, csvplaylist);
+                File statsFile = new File(dirPath, csvstatslist);
                 File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
                 String downloadsDir = downloads.getAbsolutePath();
-                String currentDirectory = csvFile.getParent() + "/";
+                String currentDirectory = csvFile.getParent() + "\\";
 
                 statsList = AnalyzeText(playList);
 
@@ -141,14 +144,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     }
 
                     try {
-                        copyFile(currentDirectory, csvplaylist, downloadsDir);
+                        copyFile(dirPath, csvplaylist, downloadsDir);
                     } catch (Exception a) {
                         Toast t = Toast.makeText(getApplicationContext(), "Uh oh. Export Failed!", Toast.LENGTH_SHORT);
                         t.show();
                     }
                 }
-
-
                 break;
             }
         }
@@ -266,25 +267,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         for (String temp : playList) {
             temp = temp.toLowerCase();
-            System.out.println(temp);
+            Log.d(logtag, temp);
+
 
             String[] words = temp.split("\\s+");
             recFlag = 0;
             lossFlag = 0;
-            recNumber = 0;
+            recNumber = null;
 
             for(int m=0; m<words.length; m++){
                 String curWord = words[m];
-                System.out.println(curWord + ", " + prevWord);
 
-                if (prevWord == "and") {
+                if (Objects.equals(prevWord, "and")) {
                     if(curWord.charAt(0)=='4'){
                         playType = "Run";
-                        curWord = '0' + curWord.substring(1);
+                        curWord = curWord.substring(1);
                     }
                 }
 
-                if ((curWord == "passed") || (curWord == "past") || (curWord == "pass")) {
+                if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass")) {
                     playType = "Pass";
                     prevWord = curWord;
                     m++;
@@ -292,19 +293,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     continue;
                 }
 
-                if ((curWord == "ran") || (curWord == "ranch") || (curWord == "run") || (curWord == "ram") || (curWord == "grand")) {
+                if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || Objects.equals(curWord, "ram") || Objects.equals(curWord, "grand")) {
                     playType = "Run";
                     prevWord = curWord;
                     m++;
                     continue;
                 }
 
-                if (curWord == "loss") {
+                if (Objects.equals(curWord, "loss")) {
                     lossFlag = 1;
                     continue;
                 }
 
-                if ((curWord == "yards") || (curWord == "yard") || (curWord == "lard")) {
+                if (Objects.equals(curWord, "yards") || Objects.equals(curWord, "yard") || Objects.equals(curWord, "lard")) {
                     gnLs = intParse(prevWord);
                     if (lossFlag == 1) {
                         gnLs = gnLs * -1;
@@ -313,8 +314,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         continue;
                 }
 
-                if ((prevWord == "number") || (prevWord == "player")) {
-                    if (curWord == "number") {
+                if (Objects.equals(prevWord, "number") || Objects.equals(prevWord, "player")) {
+                    if (Objects.equals(curWord, "number")) {
                         continue;
                     }
                     if (recFlag == 1) {
@@ -336,6 +337,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     + String.valueOf(downNum) + " , " + String.valueOf(dist) + " , " + String.valueOf(ydLn) + " , " + String.valueOf(gnLs) + " , " +
                     String.valueOf(qtr) + "\n";
             returnList.add(addition);
+            Log.d(logtag, addition);
 
             playnum++;
         }
@@ -345,7 +347,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     Integer intParse(String word) {
-        Integer number;
+        Integer number = null;
 
         switch (word) {
             case "won":
@@ -372,11 +374,31 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case "four":
                 number = 4;
                 break;
+            case "five":
+                number = 5;
+                break;
+            case "six":
+                number = 6;
+                break;
+            case "seven":
+                number = 7;
+                break;
             case "ate":
                 number = 8;
                 break;
+            case "eight":
+                number = 8;
+                break;
+            case "nine":
+                number = 9;
+                break;
+            case "ten":
+                number = 10;
+                break;
             default:
-                number = Integer.parseInt(word);
+                if ((word.length() == 1) || (word.length() == 2)) {
+                    number = Integer.parseInt(word);
+                }
                 break;
         }
 
