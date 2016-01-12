@@ -261,18 +261,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
         }*/
 
-        Integer playnum = 1, playerNumber = 0, recNumber, downNum = 1, dist = 10, ydLn = 20, gnLs = 0, qtr = 1, recFlag, lossFlag;
-        String prevWord = "", playType = "", addition = "";
+        Integer playnum = 1, playerNumber = 0, recNumber, downNum = 1, dist = 10, ydLn = 20, gnLs = 0, qtr = 1,
+                recFlag, lossFlag, returnFlag, fieldPos = 0, oppTerFlag = 0;
+        String prevWord = "", playType = "", addition = "", twowordsago = "";
 
 
         for (String temp : playList) {
             temp = temp.toLowerCase();
             Log.d(logtag, temp);
 
+            if (downNum > 4)
+                downNum = 1;
 
             String[] words = temp.split("\\s+");
-            recFlag = 0;
-            lossFlag = 0;
+            recFlag = 0; //flag that marks if there was a reception
+            lossFlag = 0; //flag that marks if there was a loss on the play
+            returnFlag = 0; //flag that marks if there is a return on the play
+            oppTerFlag = 0; //flag the mark the field position in opponent's territory
             recNumber = null;
 
             for(int m=0; m<words.length; m++){
@@ -310,8 +315,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     if (lossFlag == 1) {
                         gnLs = gnLs * -1;
                     }
-                    else
-                        continue;
+                    continue;
                 }
 
                 if (Objects.equals(prevWord, "number") || Objects.equals(prevWord, "player")) {
@@ -325,14 +329,66 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     }
                 }
 
+                if (Objects.equals(curWord, "return") || Objects.equals(curWord, "returned") || Objects.equals(curWord, "returns")) {
+                    returnFlag = 1;
+                    prevWord = curWord;
+                    continue;
+                }
+
+                if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted")) {
+                    if (returnFlag == 1)
+                        playType = "Punt Return";
+                    else
+                        playType = "Punt";
+                    prevWord = curWord;
+                    continue;
+                }
+
+                if (Objects.equals(curWord, "kick") || Objects.equals(curWord, "kicks") || Objects.equals(curWord, "kicked")) {
+                    if (returnFlag == 1)
+                        playType = "Kick Return";
+                    else
+                        playType = "Kick";
+                    prevWord = curWord;
+                    continue;
+                }
+
+                if (Objects.equals(curWord, "yardline") || Objects.equals(curWord, "line")) {
+                    if (Objects.equals(curWord, "line") && Objects.equals(prevWord, "yard")) {
+                        fieldPos = intParse(twowordsago);
+                    }
+                    else
+                        fieldPos = intParse(prevWord);
+                    continue;
+                }
+
+                if (Objects.equals(curWord, "opponent") || Objects.equals(curWord, "opponents") || Objects.equals(curWord, "opponent's")) {
+                    oppTerFlag = 1;
+                }
+
+                if ((Objects.equals(curWord, "down") && (Objects.equals(prevWord, "first") || Objects.equals(curWord, "1st")))) {
+                    downNum = 1;
+                }
 
                 /*for(int n=0; n<words[m].length(); n++){
                     }*/
 
-
+                twowordsago = prevWord;
                 prevWord = curWord;
-
             }
+
+            fieldPos = fieldPos + gnLs;
+
+            if ((fieldPos < 50) && (fieldPos > 0) && (oppTerFlag == 1))
+                ydLn = fieldPos;
+            else if ((fieldPos < 50) && (fieldPos > 0))
+                ydLn = fieldPos * -1;
+            else if (fieldPos > 49)
+                ydLn = 50 - (fieldPos - 50);
+            else ;
+                //there's a touchdown or safety
+
+
             addition = String.valueOf(playnum) + " , " + playType + " , " + String.valueOf(playerNumber) + " , " + String.valueOf(recNumber) + " , "
                     + String.valueOf(downNum) + " , " + String.valueOf(dist) + " , " + String.valueOf(ydLn) + " , " + String.valueOf(gnLs) + " , " +
                     String.valueOf(qtr) + "\n";
@@ -340,6 +396,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             Log.d(logtag, addition);
 
             playnum++;
+            downNum++;
         }
 
 
