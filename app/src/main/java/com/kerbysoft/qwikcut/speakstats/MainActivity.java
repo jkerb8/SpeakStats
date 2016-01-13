@@ -263,7 +263,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         Integer playnum = 1, playerNumber = 0, recNumber, downNum = 1, dist = 10, ydLn = 20, gnLs = 0, qtr = 1,
                 recFlag, lossFlag, returnFlag, fieldPos = 0, oppTerFlag = 0;
-        String prevWord = "", playType = "", addition = "", twowordsago = "";
+        String prevWord = "", playType = "", addition = "", twowordsago = "", curWord = "", nextWord = "";
 
 
         for (String temp : playList) {
@@ -278,10 +278,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
             lossFlag = 0; //flag that marks if there was a loss on the play
             returnFlag = 0; //flag that marks if there is a return on the play
             oppTerFlag = 0; //flag the mark the field position in opponent's territory
+            gnLs = 0;
             recNumber = null;
 
             for(int m=0; m<words.length; m++){
-                String curWord = words[m];
+                curWord = words[m];
+                if (m != (words.length - 1))
+                    nextWord = words[m+1];
+
 
                 if (Objects.equals(prevWord, "and")) {
                     if(curWord.charAt(0)=='4'){
@@ -298,7 +302,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     continue;
                 }
 
-                if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || Objects.equals(curWord, "ram") || Objects.equals(curWord, "grand")) {
+                if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || Objects.equals(curWord, "ram") || Objects.equals(curWord, "grand")
+                        || Objects.equals(curWord, "Rand")) {
                     playType = "Run";
                     prevWord = curWord;
                     m++;
@@ -309,17 +314,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     lossFlag = 1;
                     continue;
                 }
+                if (Objects.equals(curWord, "yardline") || (Objects.equals(curWord, "yard") && Objects.equals(nextWord, "line"))) {
+
+                    fieldPos = intParse(prevWord);
+                    twowordsago = prevWord;
+                    prevWord = curWord;
+                    continue;
+                }
 
                 if (Objects.equals(curWord, "yards") || Objects.equals(curWord, "yard") || Objects.equals(curWord, "lard")) {
                     gnLs = intParse(prevWord);
                     if (lossFlag == 1) {
                         gnLs = gnLs * -1;
                     }
-                    continue;
                 }
 
-                if (Objects.equals(prevWord, "number") || Objects.equals(prevWord, "player")) {
+                if (Objects.equals(prevWord, "number") || Objects.equals(prevWord, "numbers") || Objects.equals(prevWord, "player") || Objects.equals(prevWord, "players")) {
                     if (Objects.equals(curWord, "number")) {
+                        twowordsago = prevWord;
+                        prevWord = curWord;
                         continue;
                     }
                     if (recFlag == 1) {
@@ -331,6 +344,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                 if (Objects.equals(curWord, "return") || Objects.equals(curWord, "returned") || Objects.equals(curWord, "returns")) {
                     returnFlag = 1;
+                    twowordsago = prevWord;
                     prevWord = curWord;
                     continue;
                 }
@@ -340,25 +354,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         playType = "Punt Return";
                     else
                         playType = "Punt";
+                    twowordsago = prevWord;
                     prevWord = curWord;
                     continue;
                 }
 
-                if (Objects.equals(curWord, "kick") || Objects.equals(curWord, "kicks") || Objects.equals(curWord, "kicked")) {
+                if (Objects.equals(curWord, "kick") || Objects.equals(curWord, "kicks") || Objects.equals(curWord, "kicked")|| Objects.equals(curWord, "kickoff")) {
                     if (returnFlag == 1)
                         playType = "Kick Return";
                     else
                         playType = "Kick";
+                    twowordsago = prevWord;
                     prevWord = curWord;
-                    continue;
-                }
-
-                if (Objects.equals(curWord, "yardline") || Objects.equals(curWord, "line")) {
-                    if (Objects.equals(curWord, "line") && Objects.equals(prevWord, "yard")) {
-                        fieldPos = intParse(twowordsago);
-                    }
-                    else
-                        fieldPos = intParse(prevWord);
                     continue;
                 }
 
@@ -396,7 +403,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
             Log.d(logtag, addition);
 
             playnum++;
-            downNum++;
+            if (Objects.equals(playType, "Run") || Objects.equals(playType, "Pass") || Objects.equals(playType, "Punt") || Objects.equals(playType, "Field Goal"))
+                downNum++;
+            else
+                downNum = 1;
         }
 
 
