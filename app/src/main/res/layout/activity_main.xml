@@ -8,31 +8,24 @@
     android:orientation="vertical"
     android:weightSum="1">
 
-    <ImageButton
-        android:id="@+id/btnSpeak"
+    <Button
+        android:id="@+id/newGameBtn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
-        android:contentDescription="@string/speak"
-        android:src="@android:drawable/ic_btn_speak_now" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Export"
-        android:id="@+id/exportButton"
+        android:text="New Game"
         android:layout_gravity="center_horizontal" />
 
-    <TextView
-        android:id="@+id/txtText"
+    <Button
+        android:id="@+id/openGameBtn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
+        android:layout_margin="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_weight="1.63" />
+        android:text="Open Game"
+        android:layout_gravity="center_horizontal" />
+
 
 </LinearLayout>
