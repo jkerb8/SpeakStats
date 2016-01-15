@@ -69,7 +69,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private void showNewGameDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Title");
+        builder.setTitle("Enter Name of New Game");
 
         // Set up the input
         final EditText input = new EditText(MainActivity.this);
