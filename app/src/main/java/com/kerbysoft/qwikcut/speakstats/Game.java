@@ -1,33 +1,24 @@
 package com.kerbysoft.qwikcut.speakstats;
 
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -45,12 +36,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
     String csvplaylist = "play_list.csv";
     String csvstatslist = "stats_list.csv";
     FileOutputStream outputStream;
-    String gameName = "";
+    String hometeamname="", awayteamname="", gameName = "";
     Integer playerNumber = null, recNumber, ydLn = 0, gnLs,  fieldPos = 0,
             downNum = 0, dist = 10, qtr = 1, fgDistance = null;
     Integer recFlag, lossFlag, returnFlag, fgMadeFlag, oppTerFlag, incompleteFlag;
     String prevWord = "", playType = "", addition, twowordsago = "", curWord, nextWord = "", result = "";
     static final String logtag = "MyLogTag";
+    public Team awayTeam  = new Team();
+    public Team homeTeam  = new Team();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,18 +52,22 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_game);
 
-        Intent intent= getIntent(); // gets the previously created intent
-        String name = intent.getStringExtra("gameName");
-        gameName = name;
+        Intent intent = getIntent(); // gets the previously created intent
+
+        //pull in the the team names here and make new team instances and the game name
+        hometeamname = intent.getStringExtra("homeName");
+        awayteamname = intent.getStringExtra("awayName");
+
+        gameName = hometeamname + " vs. " + awayteamname;
+
+        Log.d(logtag, hometeamname + ", " + awayteamname + ", " + gameName);
+
+        homeTeam.setTeamName(hometeamname);
+        awayTeam.setTeamName(awayteamname);
 
         playList = new ArrayList<String>();
         csvList = new ArrayList<String>();
         statsList = new ArrayList<String>();
-
-        //File directory = getFilesDir();
-        // Create a new output file stream
-
-
 
         exportButton = (Button) findViewById(R.id.exportButton);
 
@@ -511,5 +508,99 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
 
         return playResult;
+    }
+
+    /**
+     * TEAM CLASS - NESTED INSIDE GAME
+     */
+    public static class Team {
+
+        private String teamName;
+        private Boolean onOffense;
+        private ArrayList<Player> players = new ArrayList<Player>();
+
+        public String getTeamName() {
+            return teamName;
+        }
+
+        public void setTeamName(String teamName) {
+            this.teamName = teamName;
+        }
+
+        public Boolean getOnOffense() {
+            return onOffense;
+        }
+
+        public void setOnOffense(Boolean onOffense) {
+            this.onOffense = onOffense;
+        }
+
+        public ArrayList<Player> getPlayers() {
+            return players;
+        }
+
+        public void addPlayer(Player player) {
+            this.players.add(player);
+        }
+
+    }
+
+    /**
+     * PLAYER CLASS - NESTED INSIDE GAME
+     */
+    public static class Player {
+        private static Integer number;
+        private static Integer passcomps;
+        private static Integer passatmpts;
+        private static Integer passyds;
+        private static Integer runatmpts;
+        private static Integer runyds;
+        private static Boolean offensive;
+
+        public void Player(Integer num, Boolean offense ) {
+            this.number = num;
+            this.offensive = offense;
+        }
+
+        public static Integer getRunyds() {
+            return runyds;
+        }
+
+        public static void setRunyds(Integer runyds) {
+            Player.runyds = runyds;
+        }
+
+        public static Integer getPasscomps() {
+            return passcomps;
+        }
+
+        public static void setPasscomps(Integer passcomps) {
+            Player.passcomps = passcomps;
+        }
+
+        public static Integer getPassatmpts() {
+            return passatmpts;
+        }
+
+        public static void setPassatmpts(Integer passatmpts) {
+            Player.passatmpts = passatmpts;
+        }
+
+        public static Integer getPassyds() {
+            return passyds;
+        }
+
+        public static void setPassyds(Integer passyds) {
+            Player.passyds = passyds;
+        }
+
+        public static Integer getRunatmpts() {
+            return runatmpts;
+        }
+
+        public static void setRunatmpts(Integer runatmpts) {
+            Player.runatmpts = runatmpts;
+        }
+
     }
 }

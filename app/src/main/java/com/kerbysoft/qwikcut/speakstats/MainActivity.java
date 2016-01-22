@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +36,7 @@ import java.util.Objects;
 public class MainActivity extends Activity implements View.OnClickListener {
 
     static final String logtag = "MyLogTag";
-    private String gameName = "";
+    private String homeName = "", awayName = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -69,21 +70,33 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private void showNewGameDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Enter Name of New Game");
+        builder.setTitle("Enter the Team Names");
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
 
         // Set up the input
-        final EditText input = new EditText(MainActivity.this);
-        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_NORMAL);
-        builder.setView(input);
+        final EditText homeTeam = new EditText(MainActivity.this);
+        final EditText awayTeam = new EditText(MainActivity.this);
+        // Specify the type of input expected;
+        homeTeam.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        homeTeam.setHint("Home Team");
+        layout.addView(homeTeam);
+
+        awayTeam.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        awayTeam.setHint("Away Team");
+        layout.addView(awayTeam);
+
+        builder.setView(layout);
 
         // Set up the buttons
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                gameName = input.getText().toString();
+                homeName = homeTeam.getText().toString();
+                awayName = awayTeam.getText().toString();
                 Intent intent = new Intent(MainActivity.this, Game.class);
-                intent.putExtra("gameName", gameName);
+                intent.putExtra("homeName", homeTeam.getText().toString());
+                intent.putExtra("awayName", awayTeam.getText().toString());
                 startActivity(intent);
             }
         });

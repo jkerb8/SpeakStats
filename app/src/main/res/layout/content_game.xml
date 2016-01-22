@@ -46,6 +46,7 @@
             android:layout_height="8dp"
             android:src="?android:attr/listDivider"/>
 
+        <requestFocus />
     </LinearLayout>
 
     <ScrollView
