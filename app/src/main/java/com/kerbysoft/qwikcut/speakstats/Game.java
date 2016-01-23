@@ -1,5 +1,6 @@
 package com.kerbysoft.qwikcut.speakstats;
 
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,8 +39,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
     String csvstatslist = "stats_list.csv";
     FileOutputStream outputStream;
     String hometeamname="", awayteamname="", gameName = "";
-    Integer playerNumber = null, recNumber, ydLn = 0, gnLs,  fieldPos = 0, playCounter = 0,
-            downNum = 0, dist = 10, qtr = 1, fgDistance = null;
+    Integer playerNumber = 00, recNumber=00, ydLn = 0, gnLs=0,  fieldPos = 0, playCounter = 0,
+            downNum = 0, dist = 10, qtr = 1, fgDistance = 0;
     Integer recFlag, lossFlag, returnFlag, fgMadeFlag, oppTerFlag, incompleteFlag;
     String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
     static final String logtag = "MyLogTag";
@@ -155,10 +157,52 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
                 Log.d(logtag, String.valueOf(id) + ", " + play.getResult());
 
+                /*
                 Toast t = Toast.makeText(getApplicationContext(), "Functionality to be added soon...\n" + play.getResult(), Toast.LENGTH_SHORT);
-                t.show();
+                t.show();*/
                 //here is where a pop-up dialog containing the play information where it can be edited
                 //will be displayed
+
+                // custom dialog
+                final Dialog dialog = new Dialog(this);
+                dialog.setContentView(R.layout.playlayout);
+                dialog.setTitle("Play " + String.valueOf(id));
+
+                // set the custom dialog components - text, image and button
+                TextView result = (TextView) dialog.findViewById(R.id.text);
+                TextView playType = (TextView) dialog.findViewById(R.id.playTypeView);
+                TextView mainPlayer = (TextView) dialog.findViewById(R.id.mainPlayerView);
+                TextView receiver = (TextView) dialog.findViewById(R.id.receiverView);
+                TextView down = (TextView) dialog.findViewById(R.id.downView);
+                TextView distance = (TextView) dialog.findViewById(R.id.distanceView);
+                TextView quarter = (TextView) dialog.findViewById(R.id.qtrView);
+
+                TextView playTypeEdit = (TextView) dialog.findViewById(R.id.playTypeEditText);
+                TextView mainPlayerEdit = (TextView) dialog.findViewById(R.id.mainPlayerEditText);
+                TextView receiverEdit = (TextView) dialog.findViewById(R.id.receiverEditText);
+                TextView downEdit = (TextView) dialog.findViewById(R.id.downEditText);
+                TextView distanceEdit = (TextView) dialog.findViewById(R.id.distanceEditText);
+                TextView quarterEdit = (TextView) dialog.findViewById(R.id.qtrEditText);
+
+                result.setText(play.getResult());
+                playTypeEdit.setText(play.getPlayType());
+                mainPlayerEdit.setText(String.valueOf(play.getPlayerNumber()));
+                receiverEdit.setText(String.valueOf(play.getRecNumber()));
+                downEdit.setText(String.valueOf(play.getDownNum()));
+                distanceEdit.setText(String.valueOf(play.getDist()));
+                quarterEdit.setText(String.valueOf(play.getQtr()));
+
+                Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonClose);
+                // if button is clicked, close the custom dialog
+                dialogButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
+
 
                 break;
             }
@@ -185,18 +229,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
                     txtText.setText(text.get(0));
                     spokenText = text.get(0);
+                    resetValues();
                     playCounter++;
 
-                    // THIS IS WHERE THE PLAY IS ANALYZED
-                    //
-                    //
-                    //
                     analyzedPlay = analyzePlay(spokenText);
-
-                    // THIS IS WHERE THE PLAY IS FINISHED BEING ANALYZED
-                    //
-                    //
-                    //
 
                     result = getResult();
 
@@ -226,11 +262,28 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                         csvList.add(text.get(0) + " , " + String.valueOf(playCounter) + "\n");
                         statsList.add(analyzedPlay);
                     }
+                    else {
+                        //gotta figure out a way to reset the values to that of the previous play
+                        playCounter--;
+
+                        Toast t = Toast.makeText(getApplicationContext(), "Play Not Recognized...", Toast.LENGTH_SHORT);
+                        t.show();
+                    }
                 }
                 break;
             }
 
         }
+    }
+
+    private void resetValues() {
+        playerNumber = 00;
+        recNumber = 00;
+        gnLs=0;
+        returnFlag=0;
+        incompleteFlag=0;
+
+        playType = "";
     }
 
     Integer intParse(String word) {
@@ -347,7 +400,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 }
             }
 
-            if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass")) {
+            if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass") || Objects.equals(curWord, "pastor")) {
                 playType = "Pass";
                 prevWord = curWord;
                 recFlag = 1;
@@ -362,7 +415,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             }
 
             if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || Objects.equals(curWord, "ram") || Objects.equals(curWord, "grand")
-                    || Objects.equals(curWord, "Rand")) {
+                    || Objects.equals(curWord, "rand") || Objects.equals(curWord, "rent")) {
                 playType = "Run";
                 prevWord = curWord;
                 m++;
@@ -418,7 +471,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             }
 
             if (Objects.equals(curWord, "kick") || Objects.equals(curWord, "kicks") || Objects.equals(curWord, "kicked") || Objects.equals(curWord, "kickoff")
-                    || Objects.equals(curWord, "cake") || Objects.equals(curWord, "kickoff")) {
+                    || Objects.equals(curWord, "cake") || Objects.equals(curWord, "kickoff") || Objects.equals(curWord, "kids")) {
 
                 playType = "Kickoff";
                 twowordsago = prevWord;
@@ -531,7 +584,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
                 break;
             default:
-
                 break;
 
         }
@@ -543,10 +595,9 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
      */
     public class Play {
 
-        Integer playerNumber = null, recNumber=null, ydLn = null, gnLs=null,  fieldPos = null,
-                downNum = null, dist = null, qtr = null, fgDistance = null, playCount = null;
-        Integer recFlag = null, lossFlag = null, returnFlag = null, fgMadeFlag = null, oppTerFlag = null, incompleteFlag = null;
-        String playType = "";
+        Integer playerNumber, recNumber, ydLn, gnLs,  fieldPos, downNum, dist, qtr, fgDistance, playCount;
+        Integer recFlag, lossFlag, returnFlag, fgMadeFlag, oppTerFlag, incompleteFlag;
+        String playType;
 
         public Integer getPlayerNumber() {
             return playerNumber;

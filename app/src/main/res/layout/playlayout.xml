@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_centerHorizontal="true"
+        />
+
+    <Button
+        android:id="@+id/dialogButtonClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" CLOSE "
+        android:layout_below="@+id/qtrEditText"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Play Type:"
+        android:id="@+id/playTypeView"
+        android:layout_alignStart="@+id/text"
+        android:layout_below="@+id/text"
+        android:layout_toStartOf="@+id/dialogButtonClose" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Passer/Runner:"
+        android:id="@+id/mainPlayerView"
+        android:layout_below="@+id/playTypeView"
+        android:layout_alignStart="@+id/playTypeView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Receiver:"
+        android:id="@+id/receiverView"
+        android:layout_below="@+id/mainPlayerView"
+        android:layout_alignStart="@+id/mainPlayerView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Down:"
+        android:id="@+id/downView"
+        android:layout_below="@+id/receiverView"
+        android:layout_alignStart="@+id/receiverView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distance"
+        android:id="@+id/distanceView"
+        android:layout_below="@+id/downView"
+        android:layout_alignStart="@+id/downView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Quarter"
+        android:id="@+id/qtrView"
+        android:layout_below="@+id/distanceView"
+        android:layout_alignStart="@+id/distanceView" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/playTypeEditText"
+        android:layout_alignTop="@+id/playTypeView"
+        android:layout_alignEnd="@+id/text"
+        android:layout_toEndOf="@+id/dialogButtonClose"
+        android:layout_alignBottom="@+id/playTypeView" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/mainPlayerEditText"
+        android:layout_below="@+id/playTypeEditText"
+        android:layout_alignEnd="@+id/playTypeEditText"
+        android:layout_alignStart="@+id/playTypeEditText"
+        android:layout_alignBottom="@+id/mainPlayerView" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/receiverEditText"
+        android:layout_alignTop="@+id/receiverView"
+        android:layout_alignEnd="@+id/mainPlayerEditText"
+        android:layout_alignStart="@+id/mainPlayerEditText"
+        android:layout_above="@+id/downView" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/downEditText"
+        android:layout_below="@+id/receiverEditText"
+        android:layout_alignEnd="@+id/receiverEditText"
+        android:layout_alignStart="@+id/receiverEditText"
+        android:layout_alignBottom="@+id/downView" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/distanceEditText"
+        android:layout_below="@+id/downEditText"
+        android:layout_alignEnd="@+id/downEditText"
+        android:layout_alignStart="@+id/downEditText"
+        android:layout_above="@+id/qtrEditText" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/qtrEditText"
+        android:layout_below="@+id/distanceEditText"
+        android:layout_alignEnd="@+id/distanceEditText"
+        android:layout_alignStart="@+id/distanceEditText"
+        android:layout_alignBottom="@+id/qtrView" />
+
+</RelativeLayout>
