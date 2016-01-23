@@ -153,6 +153,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 Integer id = v.getId();
                 Play play = gamePlays.get(id - 1);
 
+                Log.d(logtag, String.valueOf(id) + ", " + play.getResult());
+
                 Toast t = Toast.makeText(getApplicationContext(), "Functionality to be added soon...\n" + play.getResult(), Toast.LENGTH_SHORT);
                 t.show();
                 //here is where a pop-up dialog containing the play information where it can be edited
@@ -198,32 +200,32 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
                     result = getResult();
 
-                    //creating a new play and adding its attributes, then adding it to the ArrayList of plays
-                    Play currentPlay = new Play();
+                    if (result != null) {
+                        //creating a new play and adding its attributes, then adding it to the ArrayList of plays
+                        Play currentPlay = new Play();
 
-                    currentPlay.setDist(dist);
-                    currentPlay.setDownNum(downNum);
-                    currentPlay.setFgDistance(fgDistance);
-                    currentPlay.setFgMadeFlag(fgMadeFlag);
-                    currentPlay.setFieldPos(fieldPos);
-                    currentPlay.setYdLn(ydLn);
-                    currentPlay.setGnLs(gnLs);
-                    currentPlay.setIncompleteFlag(incompleteFlag);
-                    currentPlay.setPlayCount(playCounter);
-                    currentPlay.setPlayerNumber(playerNumber);
-                    currentPlay.setPlayType(playType);
-                    currentPlay.setQtr(qtr);
-                    currentPlay.setRecNumber(recNumber);
-                    currentPlay.setReturnFlag(returnFlag);
-                    currentPlay.setResult(result);
+                        currentPlay.setDist(dist);
+                        currentPlay.setDownNum(downNum);
+                        currentPlay.setFgDistance(fgDistance);
+                        currentPlay.setFgMadeFlag(fgMadeFlag);
+                        currentPlay.setFieldPos(fieldPos);
+                        currentPlay.setYdLn(ydLn);
+                        currentPlay.setGnLs(gnLs);
+                        currentPlay.setIncompleteFlag(incompleteFlag);
+                        currentPlay.setPlayCount(playCounter);
+                        currentPlay.setPlayerNumber(playerNumber);
+                        currentPlay.setPlayType(playType);
+                        currentPlay.setQtr(qtr);
+                        currentPlay.setRecNumber(recNumber);
+                        currentPlay.setReturnFlag(returnFlag);
+                        currentPlay.setResult(result);
 
-                    gamePlays.add(currentPlay);
-
-                    addButton(result, playCounter);
-                    playList.add(result);
-                    csvList.add(text.get(0) + " , " + String.valueOf(playCounter) + "\n");
-                    statsList.add(analyzedPlay);
-
+                        gamePlays.add(currentPlay);
+                        addButton(result, playCounter);
+                        playList.add(result);
+                        csvList.add(text.get(0) + " , " + String.valueOf(playCounter) + "\n");
+                        statsList.add(analyzedPlay);
+                    }
                 }
                 break;
             }
@@ -312,6 +314,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         playBtn.setText("Play " + String.valueOf(playNum) + " -  " + play);
         playBtn.setId(playNum);
         ((RelativeLayout) findViewById(R.id.scrollRelLayout)).addView(playBtn, rl);
+        playBtn.setOnClickListener(this);
 
     }
 
