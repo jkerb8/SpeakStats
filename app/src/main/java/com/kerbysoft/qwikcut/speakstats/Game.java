@@ -32,18 +32,19 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
     public ArrayList<String> playList;
     public ArrayList<String> csvList;
     public ArrayList<String> statsList;
-    Integer playCounter = 0;
+
     String csvplaylist = "play_list.csv";
     String csvstatslist = "stats_list.csv";
     FileOutputStream outputStream;
     String hometeamname="", awayteamname="", gameName = "";
-    Integer playerNumber = null, recNumber, ydLn = 0, gnLs,  fieldPos = 0,
+    Integer playerNumber = null, recNumber, ydLn = 0, gnLs,  fieldPos = 0, playCounter = 0,
             downNum = 0, dist = 10, qtr = 1, fgDistance = null;
     Integer recFlag, lossFlag, returnFlag, fgMadeFlag, oppTerFlag, incompleteFlag;
-    String prevWord = "", playType = "", addition, twowordsago = "", curWord, nextWord = "", result = "";
+    String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
     static final String logtag = "MyLogTag";
     public Team awayTeam  = new Team();
     public Team homeTeam  = new Team();
+    public ArrayList<Play> gamePlays = new ArrayList<Play>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,7 +110,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 File csvFile = new File(gamePath, csvplaylist);
                 File statsFile = new File(gamePath, csvstatslist);
 
-                statsList = AnalyzeText(playList);
 
                 for (int i=0; i<2; i++) {
                     File file = null;
@@ -149,6 +149,17 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 }
                 break;
             }
+            default : {
+                Integer id = v.getId();
+                Play play = gamePlays.get(id - 1);
+
+                Toast t = Toast.makeText(getApplicationContext(), "Functionality to be added soon...\n" + play.getResult(), Toast.LENGTH_SHORT);
+                t.show();
+                //here is where a pop-up dialog containing the play information where it can be edited
+                //will be displayed
+
+                break;
+            }
         }
     }
 
@@ -178,165 +189,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                     //
                     //
                     //
-                    String temp = spokenText.toLowerCase();
-                    Log.d(logtag, temp);
-
-                    if (downNum > 4)
-                        downNum = 1;
-
-                    String[] words = temp.split("\\s+");
-                    recFlag = 0; //flag that marks if there was a reception
-                    lossFlag = 0; //flag that marks if there was a loss on the play
-                    returnFlag = 0; //flag that marks if there is a return on the play
-                    oppTerFlag = 0; //flag to mark the field position in opponent's territory
-                    incompleteFlag = 0; //flag to mark if there was an incomplete pass or not
-                    recNumber = null;
-                    gnLs = 0;
-
-                    for(int m=0; m<words.length; m++){
-                        curWord = words[m];
-                        if (m != (words.length - 1))
-                            nextWord = words[m+1];
-
-
-                        if (Objects.equals(prevWord, "and")) {
-                            if(curWord.charAt(0)=='4'){
-                                playType = "Run";
-                                curWord = curWord.substring(1);
-                            }
-                        }
-
-                        if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass")) {
-                            playType = "Pass";
-                            prevWord = curWord;
-                            recFlag = 1;
-                            continue;
-                        }
-
-                        if (Objects.equals(curWord, "incomplete") || Objects.equals(curWord, "incompletes") || Objects.equals(curWord, "incompleted")) {
-                            prevWord = curWord;
-                            incompleteFlag = 1;
-                            gnLs = 0;
-                            continue;
-                        }
-
-                        if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || Objects.equals(curWord, "ram") || Objects.equals(curWord, "grand")
-                                || Objects.equals(curWord, "Rand")) {
-                            playType = "Run";
-                            prevWord = curWord;
-                            m++;
-                            continue;
-                        }
-
-                        if (Objects.equals(curWord, "loss")) {
-                            lossFlag = 1;
-                            continue;
-                        }
-                        if (Objects.equals(curWord, "yardline") || (Objects.equals(curWord, "yard") && Objects.equals(nextWord, "line"))) {
-
-                            fieldPos = intParse(prevWord);
-                            twowordsago = prevWord;
-                            prevWord = curWord;
-                            continue;
-                        }
-
-                        if (Objects.equals(curWord, "yards") || Objects.equals(curWord, "yard") || Objects.equals(curWord, "lard")) {
-                            gnLs = intParse(prevWord);
-                            if (lossFlag == 1) {
-                                gnLs = gnLs * -1;
-                            }
-                        }
-
-                        if (Objects.equals(prevWord, "number") || Objects.equals(prevWord, "numbers") || Objects.equals(prevWord, "player") || Objects.equals(prevWord, "players")
-                                || Objects.equals(prevWord, "never")) {
-                            if (Objects.equals(curWord, "number")) {
-                                twowordsago = prevWord;
-                                prevWord = curWord;
-                                continue;
-                            }
-                            if (recFlag == 1) {
-                                recNumber = intParse(curWord);
-                            } else {
-                                playerNumber = intParse(curWord);
-                            }
-                        }
-
-                        if (Objects.equals(curWord, "return") || Objects.equals(curWord, "returned") || Objects.equals(curWord, "returns")) {
-                            returnFlag = 1;
-                            twowordsago = prevWord;
-                            prevWord = curWord;
-                            continue;
-                        }
-
-                        if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted")) {
-
-                            playType = "Punt";
-                            twowordsago = prevWord;
-                            prevWord = curWord;
-                            continue;
-                        }
-
-                        if (Objects.equals(curWord, "kick") || Objects.equals(curWord, "kicks") || Objects.equals(curWord, "kicked") || Objects.equals(curWord, "kickoff")
-                                || Objects.equals(curWord, "cake") || Objects.equals(curWord, "kickoff")) {
-
-                            playType = "Kickoff";
-                            twowordsago = prevWord;
-                            prevWord = curWord;
-                            continue;
-                        }
-
-                        if (Objects.equals(curWord, "fieldgoal") || (Objects.equals(curWord, "field") && Objects.equals(nextWord, "goal"))) {
-                            playType = "Field Goal";
-                            fgDistance = (100 - fieldPos) + 17;
-                        }
-
-                        if (Objects.equals(curWord, "pat") || (Objects.equals(curWord, "point") && Objects.equals(nextWord, "after"))) {
-                            playType = "PAT";
-                            fgDistance = 20;
-                        }
-
-                        //checks if FG/PAT was good, might need more cases
-                        if (Objects.equals(curWord, "good") || Objects.equals(curWord, "could")) {
-                            if (Objects.equals(prevWord, "no") || Objects.equals(prevWord, "not") || Objects.equals(prevWord, "knot")) {
-                                fgMadeFlag = 0;
-                            }
-                            else
-                                fgMadeFlag = 1;
-                        }
-
-                        if (Objects.equals(curWord, "opponent") || Objects.equals(curWord, "opponents") || Objects.equals(curWord, "opponent's")) {
-                            oppTerFlag = 1;
-                        }
-
-                        if ((Objects.equals(curWord, "down") && (Objects.equals(prevWord, "first") || Objects.equals(curWord, "1st")))) {
-                            downNum = 1;
-                        }
-
-                    /*for(int n=0; n<words[m].length(); n++){
-                        }*/
-
-                        twowordsago = prevWord;
-                        prevWord = curWord;
-                    }
-                    //fieldPos is 1 to 100 number representing field position
-                    fieldPos = fieldPos + gnLs;
-
-                    //sets ydLn to neg if in own territory, pos if in opponents territory
-                    if ((fieldPos < 50) && (fieldPos > 0) && (oppTerFlag == 1))
-                        ydLn = fieldPos;
-                    else if ((fieldPos < 50) && (fieldPos > 0))
-                        ydLn = fieldPos * -1;
-                    else if (fieldPos > 49)
-                        ydLn = 50 - (fieldPos - 50);
-                    else ;
-                    //there's a touchdown or safety
-
-                    //putting it all together...
-                    analyzedPlay = String.valueOf(playCounter) + " , " + playType + " , " + String.valueOf(playerNumber) + " , " + String.valueOf(recNumber) + " , "
-                            + String.valueOf(downNum) + " , " + String.valueOf(dist) + " , " + String.valueOf(ydLn) + " , " + String.valueOf(gnLs) + " , " +
-                            String.valueOf(qtr) + "\n";
-
-                    Log.d(logtag, analyzedPlay);
+                    analyzedPlay = analyzePlay(spokenText);
 
                     // THIS IS WHERE THE PLAY IS FINISHED BEING ANALYZED
                     //
@@ -344,28 +197,38 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                     //
 
                     result = getResult();
+
+                    //creating a new play and adding its attributes, then adding it to the ArrayList of plays
+                    Play currentPlay = new Play();
+
+                    currentPlay.setDist(dist);
+                    currentPlay.setDownNum(downNum);
+                    currentPlay.setFgDistance(fgDistance);
+                    currentPlay.setFgMadeFlag(fgMadeFlag);
+                    currentPlay.setFieldPos(fieldPos);
+                    currentPlay.setYdLn(ydLn);
+                    currentPlay.setGnLs(gnLs);
+                    currentPlay.setIncompleteFlag(incompleteFlag);
+                    currentPlay.setPlayCount(playCounter);
+                    currentPlay.setPlayerNumber(playerNumber);
+                    currentPlay.setPlayType(playType);
+                    currentPlay.setQtr(qtr);
+                    currentPlay.setRecNumber(recNumber);
+                    currentPlay.setReturnFlag(returnFlag);
+                    currentPlay.setResult(result);
+
+                    gamePlays.add(currentPlay);
+
                     addButton(result, playCounter);
                     playList.add(result);
                     csvList.add(text.get(0) + " , " + String.valueOf(playCounter) + "\n");
+                    statsList.add(analyzedPlay);
 
                 }
                 break;
             }
 
         }
-    }
-
-    ArrayList<String> AnalyzeText(ArrayList<String> playList) {
-        ArrayList<String> returnList = new ArrayList<String>();
-
-        String listAddition = "";
-
-        for (String temp : playList) {
-            returnList.add(listAddition);
-        }
-
-
-        return returnList;
     }
 
     Integer intParse(String word) {
@@ -452,6 +315,170 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
     }
 
+    private String analyzePlay(String spokenText) {
+        String temp = spokenText.toLowerCase();
+        Log.d(logtag, temp);
+
+        if (downNum > 4)
+            downNum = 1;
+
+        String[] words = temp.split("\\s+");
+        recFlag = 0; //flag that marks if there was a reception
+        lossFlag = 0; //flag that marks if there was a loss on the play
+        returnFlag = 0; //flag that marks if there is a return on the play
+        oppTerFlag = 0; //flag to mark the field position in opponent's territory
+        incompleteFlag = 0; //flag to mark if there was an incomplete pass or not
+        recNumber = null;
+        gnLs = 0;
+
+        for(int m=0; m<words.length; m++){
+            curWord = words[m];
+            if (m != (words.length - 1))
+                nextWord = words[m+1];
+
+
+            if (Objects.equals(prevWord, "and")) {
+                if(curWord.charAt(0)=='4'){
+                    playType = "Run";
+                    curWord = curWord.substring(1);
+                }
+            }
+
+            if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass")) {
+                playType = "Pass";
+                prevWord = curWord;
+                recFlag = 1;
+                continue;
+            }
+
+            if (Objects.equals(curWord, "incomplete") || Objects.equals(curWord, "incompletes") || Objects.equals(curWord, "incompleted")) {
+                prevWord = curWord;
+                incompleteFlag = 1;
+                gnLs = 0;
+                continue;
+            }
+
+            if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || Objects.equals(curWord, "ram") || Objects.equals(curWord, "grand")
+                    || Objects.equals(curWord, "Rand")) {
+                playType = "Run";
+                prevWord = curWord;
+                m++;
+                continue;
+            }
+
+            if (Objects.equals(curWord, "loss")) {
+                lossFlag = 1;
+                continue;
+            }
+            if (Objects.equals(curWord, "yardline") || (Objects.equals(curWord, "yard") && Objects.equals(nextWord, "line"))) {
+
+                fieldPos = intParse(prevWord);
+                twowordsago = prevWord;
+                prevWord = curWord;
+                continue;
+            }
+
+            if (Objects.equals(curWord, "yards") || Objects.equals(curWord, "yard") || Objects.equals(curWord, "lard")) {
+                gnLs = intParse(prevWord);
+                if (lossFlag == 1) {
+                    gnLs = gnLs * -1;
+                }
+            }
+
+            if (Objects.equals(prevWord, "number") || Objects.equals(prevWord, "numbers") || Objects.equals(prevWord, "player") || Objects.equals(prevWord, "players")
+                    || Objects.equals(prevWord, "never")) {
+                if (Objects.equals(curWord, "number")) {
+                    twowordsago = prevWord;
+                    prevWord = curWord;
+                    continue;
+                }
+                if (recFlag == 1) {
+                    recNumber = intParse(curWord);
+                } else {
+                    playerNumber = intParse(curWord);
+                }
+            }
+
+            if (Objects.equals(curWord, "return") || Objects.equals(curWord, "returned") || Objects.equals(curWord, "returns")) {
+                returnFlag = 1;
+                twowordsago = prevWord;
+                prevWord = curWord;
+                continue;
+            }
+
+            if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted")) {
+
+                playType = "Punt";
+                twowordsago = prevWord;
+                prevWord = curWord;
+                continue;
+            }
+
+            if (Objects.equals(curWord, "kick") || Objects.equals(curWord, "kicks") || Objects.equals(curWord, "kicked") || Objects.equals(curWord, "kickoff")
+                    || Objects.equals(curWord, "cake") || Objects.equals(curWord, "kickoff")) {
+
+                playType = "Kickoff";
+                twowordsago = prevWord;
+                prevWord = curWord;
+                continue;
+            }
+
+            if (Objects.equals(curWord, "fieldgoal") || (Objects.equals(curWord, "field") && Objects.equals(nextWord, "goal"))) {
+                playType = "Field Goal";
+                fgDistance = (100 - fieldPos) + 17;
+            }
+
+            if (Objects.equals(curWord, "pat") || (Objects.equals(curWord, "point") && Objects.equals(nextWord, "after"))) {
+                playType = "PAT";
+                fgDistance = 20;
+            }
+
+            //checks if FG/PAT was good, might need more cases
+            if (Objects.equals(curWord, "good") || Objects.equals(curWord, "could")) {
+                if (Objects.equals(prevWord, "no") || Objects.equals(prevWord, "not") || Objects.equals(prevWord, "knot")) {
+                    fgMadeFlag = 0;
+                }
+                else
+                    fgMadeFlag = 1;
+            }
+
+            if (Objects.equals(curWord, "opponent") || Objects.equals(curWord, "opponents") || Objects.equals(curWord, "opponent's")) {
+                oppTerFlag = 1;
+            }
+
+            if ((Objects.equals(curWord, "down") && (Objects.equals(prevWord, "first") || Objects.equals(curWord, "1st")))) {
+                downNum = 1;
+            }
+
+                    /*for(int n=0; n<words[m].length(); n++){
+                        }*/
+
+            twowordsago = prevWord;
+            prevWord = curWord;
+        }
+        //fieldPos is 1 to 100 number representing field position
+        fieldPos = fieldPos + gnLs;
+
+        //sets ydLn to neg if in own territory, pos if in opponents territory
+        if ((fieldPos < 50) && (fieldPos > 0) && (oppTerFlag == 1))
+            ydLn = fieldPos;
+        else if ((fieldPos < 50) && (fieldPos > 0))
+            ydLn = fieldPos * -1;
+        else if (fieldPos > 49)
+            ydLn = 50 - (fieldPos - 50);
+        else ;
+        //there's a touchdown or safety
+
+        //putting it all together...
+        String returnedPlay = String.valueOf(playCounter) + " , " + playType + " , " + String.valueOf(playerNumber) + " , " + String.valueOf(recNumber) + " , "
+                + String.valueOf(downNum) + " , " + String.valueOf(dist) + " , " + String.valueOf(ydLn) + " , " + String.valueOf(gnLs) + " , " +
+                String.valueOf(qtr) + "\n";
+
+        Log.d(logtag, returnedPlay);
+
+        return returnedPlay;
+    }
+
     private String getResult() {
         String playResult = null;
 
@@ -505,9 +532,142 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 break;
 
         }
-
-
         return playResult;
+    }
+
+    /**
+     * PLAY CLASS - NESTED INSIDE GAME
+     */
+    public class Play {
+
+        Integer playerNumber = null, recNumber=null, ydLn = null, gnLs=null,  fieldPos = null,
+                downNum = null, dist = null, qtr = null, fgDistance = null, playCount = null;
+        Integer recFlag = null, lossFlag = null, returnFlag = null, fgMadeFlag = null, oppTerFlag = null, incompleteFlag = null;
+        String playType = "";
+
+        public Integer getPlayerNumber() {
+            return playerNumber;
+        }
+
+        public void setPlayerNumber(Integer playerNumber) {
+            this.playerNumber = playerNumber;
+        }
+
+        public Integer getRecNumber() {
+            return recNumber;
+        }
+
+        public void setRecNumber(Integer recNumber) {
+            this.recNumber = recNumber;
+        }
+
+        public Integer getYdLn() {
+            return ydLn;
+        }
+
+        public void setYdLn(Integer ydLn) {
+            this.ydLn = ydLn;
+        }
+
+        public Integer getGnLs() {
+            return gnLs;
+        }
+
+        public void setGnLs(Integer gnLs) {
+            this.gnLs = gnLs;
+        }
+
+        public Integer getFieldPos() {
+            return fieldPos;
+        }
+
+        public void setFieldPos(Integer fieldPos) {
+            this.fieldPos = fieldPos;
+        }
+
+        public Integer getDownNum() {
+            return downNum;
+        }
+
+        public void setDownNum(Integer downNum) {
+            this.downNum = downNum;
+        }
+
+        public Integer getDist() {
+            return dist;
+        }
+
+        public void setDist(Integer dist) {
+            this.dist = dist;
+        }
+
+        public Integer getQtr() {
+            return qtr;
+        }
+
+        public void setQtr(Integer qtr) {
+            this.qtr = qtr;
+        }
+
+        public Integer getFgDistance() {
+            return fgDistance;
+        }
+
+        public void setFgDistance(Integer fgDistance) {
+            this.fgDistance = fgDistance;
+        }
+
+        public Integer getPlayCount() {
+            return playCount;
+        }
+
+        public void setPlayCount(Integer playCount) {
+            this.playCount = playCount;
+        }
+
+        public Integer getFgMadeFlag() {
+            return fgMadeFlag;
+        }
+
+        public void setFgMadeFlag(Integer fgMadeFlag) {
+            this.fgMadeFlag = fgMadeFlag;
+        }
+
+        public Integer getReturnFlag() {
+            return returnFlag;
+        }
+
+        public void setReturnFlag(Integer returnFlag) {
+            this.returnFlag = returnFlag;
+        }
+
+        public Integer getIncompleteFlag() {
+            return incompleteFlag;
+        }
+
+        public void setIncompleteFlag(Integer incompleteFlag) {
+            this.incompleteFlag = incompleteFlag;
+        }
+
+        public String getPlayType() {
+            return playType;
+        }
+
+        public void setPlayType(String playType) {
+            this.playType = playType;
+        }
+
+        public String getResult() {
+            return result;
+        }
+
+        public void setResult(String result) {
+            this.result = result;
+        }
+
+        String result = "";
+
+
     }
 
     /**
