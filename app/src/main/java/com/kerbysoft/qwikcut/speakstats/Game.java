@@ -43,6 +43,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             downNum = 0, dist = 10, qtr = 1, fgDistance = 0;
     Integer recFlag, lossFlag, returnFlag, fgMadeFlag, oppTerFlag, incompleteFlag;
     String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
+    boolean invalidPlay = false;
     static final String logtag = "MyLogTag";
     public Team awayTeam  = new Team();
     public Team homeTeam  = new Team();
@@ -265,8 +266,9 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                     else {
                         //gotta figure out a way to reset the values to that of the previous play
                         playCounter--;
+                        revertToLastPlay(gamePlays.get(playCounter - 1));
 
-                        Toast t = Toast.makeText(getApplicationContext(), "Play Not Recognized...", Toast.LENGTH_SHORT);
+                        Toast t = Toast.makeText(getApplicationContext(), "Play not recognized as a valid play. Please try again.", Toast.LENGTH_SHORT);
                         t.show();
                     }
                 }
@@ -282,8 +284,25 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         gnLs=0;
         returnFlag=0;
         incompleteFlag=0;
-
+        invalidPlay = false;
         playType = "";
+    }
+
+    private void revertToLastPlay(Play lastPlay) {
+        dist = lastPlay.getDist();
+        downNum = lastPlay.getDownNum();
+        fgDistance = lastPlay.getFgDistance();
+        fgMadeFlag = lastPlay.getFgMadeFlag();
+        fieldPos = lastPlay.getFieldPos();
+        ydLn= lastPlay.getYdLn();
+        gnLs = lastPlay.getGnLs();
+        incompleteFlag = lastPlay.getIncompleteFlag();
+        playerNumber = lastPlay.getPlayerNumber();
+        playType = lastPlay.getPlayType();
+        qtr = lastPlay.getQtr();
+        recNumber = lastPlay.getRecNumber();
+        returnFlag = lastPlay.getReturnFlag();
+        result = lastPlay.getResult();
     }
 
     Integer intParse(String word) {
@@ -342,9 +361,16 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 number = 10;
                 break;
             default:
-                if ((word.length() == 1) || (word.length() == 2)) {
-                    number = Integer.parseInt(word);
+                if ((word.length() >= 1) || (word.length() <= 3)) {
+                    try {
+                        number = Integer.parseInt(word);
+                    }
+                    catch (Exception e) {
+                        invalidPlay = true;
+                    }
                 }
+                else
+                    invalidPlay = true;
                 break;
         }
 
@@ -453,6 +479,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 } else {
                     playerNumber = intParse(curWord);
                 }
+            }
+
+            if (Objects.equals(curWord, "touchdown") || (Objects.equals(curWord, "down") && Objects.equals(nextWord, "touch"))) {
+                fieldPos = 100;
+                //add 6 pts to current team's score - need to make score variables for each team and shiz
             }
 
             if (Objects.equals(curWord, "return") || Objects.equals(curWord, "returned") || Objects.equals(curWord, "returns")) {
