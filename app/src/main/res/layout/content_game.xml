@@ -6,7 +6,7 @@
     android:orientation="horizontal"
     android:weightSum="1">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/topLayout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -23,11 +23,36 @@
             android:src="@android:drawable/ic_btn_speak_now" />
 
         <Button
+            android:id="@+id/exportButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Export"
-            android:id="@+id/exportButton"
+            android:layout_below="@id/btnSpeak"
+            android:layout_centerInParent="true"
             android:layout_gravity="center_horizontal" />
+
+        <TextView  style="@android:style/TextAppearance.Large"
+            android:id="@+id/qtrText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Qtr  "
+            android:layout_marginTop="10dp"
+            android:layout_centerInParent="true"
+            android:layout_below="@id/exportButton"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView  style="@android:style/TextAppearance.Large"
+            android:id="@+id/qtrNumberText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_toRightOf="@id/qtrText"
+            android:layout_below="@id/exportButton"
+            android:background="@drawable/back"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
 
         <TextView
             android:id="@+id/txtText"
@@ -36,18 +61,39 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="10dp"
+            android:layout_below="@id/qtrNumberText"
+            android:layout_centerInParent="true"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:layout_weight="1.63" />
 
-        <View
-            android:layout_width="fill_parent"
+        <TextView
+            android:id="@+id/awayScoreNumberText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00"
             android:layout_marginLeft="10dp"
+            android:layout_marginRight="80dp"
+            android:layout_marginTop="10dp"
+            android:layout_toLeftOf="@id/exportButton"
+            android:layout_below="@id/btnSpeak"
+            android:background="@drawable/back"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView  style="@android:style/TextAppearance.Large"
+            android:id="@+id/homeScoreNumberText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00"
+            android:layout_marginLeft="80dp"
             android:layout_marginRight="10dp"
-            android:layout_height="8dp"
-            android:src="?android:attr/listDivider"/>
+            android:layout_marginTop="10dp"
+            android:layout_toRightOf="@id/exportButton"
+            android:layout_below="@id/btnSpeak"
+            android:background="@drawable/back"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <requestFocus />
-    </LinearLayout>
+    </RelativeLayout>
 
     <ScrollView
         android:layout_width="fill_parent"
