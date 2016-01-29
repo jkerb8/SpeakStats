@@ -614,6 +614,16 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             case "2 Pt. Conversion":
 
                 break;
+            case "Touchdown":
+                if(homeTeam.onOffense){
+                    playResult = hometeamname + "scored a Touchdown!";
+                    homeTeam.teamScore += 6;
+                }
+                else{
+                    playResult = awayteamname + "scored a Touchdown!";
+                    awayTeam.teamScore += 6;
+                }
+                break;
             default:
                 break;
 
@@ -760,9 +770,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
      */
     public static class Team {
 
+        private int teamScore = 0;
         private String teamName;
         private Boolean onOffense;
         private ArrayList<Player> players = new ArrayList<Player>();
+
+        public int getTeamScore(){return teamScore; }
+
+        public void setTeamScore(int teamScore){ this.teamScore = teamScore; }
 
         public String getTeamName() {
             return teamName;
