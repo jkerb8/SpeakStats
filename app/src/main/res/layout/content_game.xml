@@ -50,7 +50,6 @@
             android:layout_marginTop="10dp"
             android:layout_toRightOf="@id/qtrText"
             android:layout_below="@id/exportButton"
-            android:background="@drawable/back"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
 
@@ -76,7 +75,6 @@
             android:layout_marginTop="10dp"
             android:layout_toLeftOf="@id/exportButton"
             android:layout_below="@id/btnSpeak"
-            android:background="@drawable/back"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView  style="@android:style/TextAppearance.Large"
@@ -89,8 +87,25 @@
             android:layout_marginTop="10dp"
             android:layout_toRightOf="@id/exportButton"
             android:layout_below="@id/btnSpeak"
-            android:background="@drawable/back"
             android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:id="@+id/awayPossImageView"
+            android:layout_below="@+id/awayScoreNumberText"
+            android:src="@drawable/american_football"
+            android:layout_alignLeft="@+id/awayScoreNumberText"
+            android:visibility="visible"/>
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:id="@+id/homePossImageView"
+            android:layout_below="@+id/homeScoreNumberText"
+            android:src="@drawable/american_football"
+            android:layout_alignLeft="@+id/homeScoreNumberText"
+            android:visibility="visible"/>
 
         <requestFocus />
     </RelativeLayout>

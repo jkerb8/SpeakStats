@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -34,6 +35,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
     TextView qtrTextView;
     TextView homeScoreTextView;
     TextView awayScoreTextView;
+    ImageView awayPossImageView;
+    ImageView homePossImageView;
     public ArrayList<String> playList;
     public ArrayList<String> csvList;
     public ArrayList<String> statsList;
@@ -43,7 +46,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
     FileOutputStream outputStream;
     String hometeamname="", awayteamname="", gameName = "";
     Integer playerNumber = 00, recNumber=00, ydLn = 0, gnLs=0,  fieldPos = 0, playCounter = 0,
-            downNum = 0, dist = 10, qtr = 1, fgDistance = 0;
+            downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown=0, prevDist=0;
     Integer recFlag, lossFlag, returnFlag, fgMadeFlag, oppTerFlag, incompleteFlag, touchdownFlag;
     String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
     boolean invalidPlay = false;
@@ -79,6 +82,12 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         awayScoreTextView = (TextView) findViewById(R.id.awayScoreNumberText);
         homeScoreTextView = (TextView) findViewById(R.id.homeScoreNumberText);
         qtrTextView = (TextView) findViewById(R.id.qtrNumberText);
+
+        awayPossImageView = (ImageView) findViewById(R.id.awayPossImageView);
+        homePossImageView = (ImageView) findViewById(R.id.homePossImageView);
+
+        //if away team starts with ball
+        homePossImageView.setVisibility(ImageView.INVISIBLE);
 
         exportButton = (Button) findViewById(R.id.exportButton);
 
@@ -184,6 +193,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 TextView down = (TextView) dialog.findViewById(R.id.downView);
                 TextView distance = (TextView) dialog.findViewById(R.id.distanceView);
                 TextView quarter = (TextView) dialog.findViewById(R.id.qtrView);
+                TextView gnLs = (TextView) dialog.findViewById(R.id.gnLsView);
 
                 TextView playTypeEdit = (TextView) dialog.findViewById(R.id.playTypeEditText);
                 TextView mainPlayerEdit = (TextView) dialog.findViewById(R.id.mainPlayerEditText);
@@ -191,6 +201,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 TextView downEdit = (TextView) dialog.findViewById(R.id.downEditText);
                 TextView distanceEdit = (TextView) dialog.findViewById(R.id.distanceEditText);
                 TextView quarterEdit = (TextView) dialog.findViewById(R.id.qtrEditText);
+                TextView gnLsEdit = (TextView) dialog.findViewById(R.id.gnLsEditText);
 
                 result.setText(play.getResult());
                 playTypeEdit.setText(play.getPlayType());
@@ -199,13 +210,24 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 downEdit.setText(String.valueOf(play.getDownNum()));
                 distanceEdit.setText(String.valueOf(play.getDist()));
                 quarterEdit.setText(String.valueOf(play.getQtr()));
+                gnLsEdit.setText(String.valueOf(play.getGnLs()));
 
-                Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonClose);
+                Button dialogCloseButton = (Button) dialog.findViewById(R.id.dialogButtonClose);
+                Button dialogSaveButton = (Button) dialog.findViewById(R.id.dialogButtonSave);
+
                 // if button is clicked, close the custom dialog
-                dialogButton.setOnClickListener(new View.OnClickListener() {
+                dialogCloseButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         dialog.dismiss();
+                    }
+                });
+
+                dialogSaveButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast t = Toast.makeText(getApplicationContext(), "Functionality will be added soon", Toast.LENGTH_SHORT);
+                        t.show();
                     }
                 });
 
@@ -250,8 +272,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                             //creating a new play and adding its attributes, then adding it to the ArrayList of plays
                             Play currentPlay = new Play();
 
-                            currentPlay.setDist(dist);
-                            currentPlay.setDownNum(downNum);
+                            currentPlay.setDist(prevDist);
+                            currentPlay.setDownNum(prevDown);
                             currentPlay.setFgDistance(fgDistance);
                             currentPlay.setFgMadeFlag(fgMadeFlag);
                             currentPlay.setFieldPos(fieldPos);
@@ -280,8 +302,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
                     }
                     else {
-
-                        revertToLastPlay(gamePlays.get(playCounter - 1));
+                        if (playCounter > 0)
+                            revertToLastPlay(gamePlays.get(playCounter - 1));
+                        else
+                            completeReset();
 
                         Toast t = Toast.makeText(getApplicationContext(), "Play not recognized as a valid play. Please try again.", Toast.LENGTH_SHORT);
                         t.show();
@@ -319,6 +343,23 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         recNumber = lastPlay.getRecNumber();
         returnFlag = lastPlay.getReturnFlag();
         result = lastPlay.getResult();
+    }
+
+    private void completeReset() {
+        dist = 0;
+        downNum = 1;
+        fgDistance = 0;
+        fgMadeFlag = 0;
+        fieldPos = 0;
+        ydLn= 0;
+        gnLs = 0;
+        incompleteFlag = 0;
+        playerNumber = 00;
+        playType = "";
+        qtr = 0;
+        recNumber = 0;
+        returnFlag = 0;
+        result = "";
     }
 
     Integer intParse(String word) {
@@ -408,6 +449,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         playBtn.setLayoutParams(rl);
         playBtn.setText("Play " + String.valueOf(playNum) + " -  " + play);
         playBtn.setId(playNum);
+        playBtn.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         ((RelativeLayout) findViewById(R.id.scrollRelLayout)).addView(playBtn, rl);
         playBtn.setOnClickListener(this);
 
@@ -417,8 +459,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         String temp = spokenText.toLowerCase();
         Log.d(logtag, temp);
 
-        if (downNum > 4)
-            downNum = 1;
+        prevDown = downNum;
+        prevDist = dist;
 
         String[] words = temp.split("\\s+");
         recFlag = 0; //flag that marks if there was a reception
@@ -504,7 +546,17 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 }
                 if (recFlag == 1) {
                     recNumber = intParse(curWord);
-                } else {
+                }
+                else {
+                    int len = curWord.length();
+                    if (len > 2) {
+                        if (curWord.substring(1, 3).equals("14")) {
+                            playType = "Run";
+                            if (len == 4)
+                                gnLs = intParse(curWord.substring(3));
+                            curWord = curWord.substring(0, 1);
+                        }
+                    }
                     playerNumber = intParse(curWord);
                 }
             }
@@ -514,7 +566,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 continue;
             }
 
-                if (Objects.equals(curWord, "touchdown") || (Objects.equals(curWord, "touch") && Objects.equals(nextWord, "down"))) {
+            if (Objects.equals(curWord, "touchdown") || (Objects.equals(curWord, "touch") && Objects.equals(nextWord, "down"))) {
                 gnLs = 100 - fieldPos;
                 fieldPos = 100;
                 touchdownFlag = 1;
@@ -534,7 +586,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 continue;
             }
 
-            if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted")) {
+            if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted") || Objects.equals(curWord, "punch")) {
 
                 playType = "Punt";
                 twowordsago = prevWord;
@@ -598,7 +650,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             }
 
             if ((Objects.equals(curWord, "down") && (Objects.equals(prevWord, "first") || Objects.equals(curWord, "1st")))) {
-                downNum = 1;
+                if (playType.equals("Penalty")) {
+                    downNum = 1;
+                    dist = 10;
+                }
             }
 
                     /*for(int n=0; n<words[m].length(); n++){
@@ -632,9 +687,19 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         return returnedPlay;
     }
 
-    private void changePossesion() {
-        homeTeam.setOnOffense(!homeTeam.getOnOffense());
-        awayTeam.setOnOffense(!awayTeam.getOnOffense());
+    private void changePossession() {
+        if (awayTeam.getOnOffense()) {
+            awayPossImageView.setVisibility(ImageView.INVISIBLE);
+            homePossImageView.setVisibility(ImageView.VISIBLE);
+            homeTeam.setOnOffense(true);
+            awayTeam.setOnOffense(false);
+        }
+        else {
+            awayPossImageView.setVisibility(ImageView.VISIBLE);
+            homePossImageView.setVisibility(ImageView.INVISIBLE);
+            homeTeam.setOnOffense(false);
+            awayTeam.setOnOffense(true);
+        }
     }
 
     private String getResult() {
@@ -657,38 +722,68 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 playResult = "Number " + String.valueOf(playerNumber) + " ran for " + String.valueOf(gnLs) + " yards";
                 break;
             case "Kickoff":
-                if ((returnFlag == 1) && (touchdownFlag == 0))
+                downNum=0;
+                if ((returnFlag == 1) && (touchdownFlag == 0)) {
                     playResult = "Number " + String.valueOf(playerNumber) + " returned the kickoff to the " + String.valueOf(ydLn) + " yardline";
+                    downNum = 1;
+                    dist = 10;
+                }
                 else if ((returnFlag == 1) && (touchdownFlag == 1)) {
                     playResult = "Number " + String.valueOf(playerNumber) + " returned the kickoff";
                 }
-                else ;
+                else {
                     //i guess there was a touchback or he kicked it out of bounds
+                    downNum = 1;
+                    dist = 10;
+                }
+                changePossession();
                 break;
             case "Punt":
-                if ((returnFlag == 1) && (touchdownFlag == 0))
+                if ((returnFlag == 1) && (touchdownFlag == 0)) {
                     playResult = "Number " + String.valueOf(playerNumber) + " returned the punt " + String.valueOf(gnLs) +
                             " yards to the " + String.valueOf(ydLn) + " yardline";
+                    downNum = 0;
+                    dist = 0;
+                }
                 else if ((returnFlag == 1) && (touchdownFlag == 1)) {
                     playResult = "Number " + String.valueOf(playerNumber) + " returned the punt";
+                    downNum = 1;
+                    dist = 10;
                 }
-                else ;
+                else {
                     //fair catch or touchback or some bullshit
+                    playResult = "Number " + String.valueOf(playerNumber) + " punts to the " + String.valueOf(ydLn) + " yardline";
+                    downNum = 1;
+                    dist = 10;
+                }
+                changePossession();
                 break;
             case "Field Goal":
-                if (fgMadeFlag == 1)
+                if (fgMadeFlag == 1) {
                     playResult = "The " + String.valueOf(fgDistance) + "-yard field goal was good";
-                else
+                    changePossession();
+                    downNum = 0;
+                    dist = 0;
+                }
+                else {
                     playResult = "The " + String.valueOf(fgDistance) + "-yard field goal was no good";
+                    changePossession();
+                    downNum = 1;
+                    dist = 10;
+                }
                 break;
             case "PAT":
                 if (fgMadeFlag == 1)
                     playResult = "The PAT was good";
                 else
                     playResult = "The PAT was no good";
+                downNum = 0;
+                dist = 0;
                 break;
             case "2 Pt. Conversion":
                 playResult = "2 Pt. Conversion - fix this";
+                downNum = 0;
+                dist = 0;
                 break;
             case "Penalty":
                 playResult = String.valueOf(gnLs) + " yard penalty";
@@ -700,6 +795,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                         break;
                     case 2:
                         playResult = "End of 2nd Quarter";
+                        downNum = 1;
+                        dist = 10;
+                        //ask at the beginning who got the ball first
+                        //and here, set the possession to opposite team.
                         break;
                     case 3:
                         playResult = "End of 3rd Quarter";
@@ -717,9 +816,25 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 invalidPlay = true;
                 break;
         }
+        if (playType.equals("Pass") || playType.equals("Run")) {
+            downNum++;
+            dist -= gnLs;
+        }
+
+        if (dist <= 0) {
+            downNum = 1;
+            dist = 10;
+        }
+        if (downNum > 4) {
+            changePossession();
+            downNum = 1;
+            dist = 10;
+        }
 
         if ((touchdownFlag == 1) && (playResult != null)) {
             playResult = playResult.concat(" for a TOUCHDOWN!");
+            downNum = 0;
+            dist = 3;
         }
 
         return playResult;

@@ -10,21 +10,14 @@
         android:layout_marginLeft="10dp"
         android:layout_centerHorizontal="true" />
 
-    <Button
-        android:id="@+id/dialogButtonClose"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=" CLOSE "
-        android:layout_below="@+id/qtrEditText"
-        android:layout_centerHorizontal="true" />
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="25dp"
         android:text="Play Type:"
         android:id="@+id/playTypeView"
         android:layout_alignLeft="@+id/text"
-        android:layout_below="@+id/text" />
+        android:layout_below="@+id/text"
+        android:layout_marginTop="10dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -66,6 +59,14 @@
         android:layout_below="@+id/distanceView"
         android:layout_alignLeft="@+id/distanceView" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="25dp"
+        android:text="Gain/Loss:"
+        android:id="@+id/gnLsView"
+        android:layout_below="@+id/qtrView"
+        android:layout_alignLeft="@+id/qtrView" />
+
     <EditText style="@android:style/TextAppearance.Small"
         android:layout_width="fill_parent"
         android:layout_height="25dp"
@@ -75,7 +76,8 @@
         android:background="@android:color/transparent"
         android:layout_toRightOf="@+id/playTypeView"
         android:layout_alignBottom="@+id/playTypeView"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp" />
 
     <EditText style="@android:style/TextAppearance.Small"
         android:layout_width="fill_parent"
@@ -131,5 +133,33 @@
         android:gravity="end"
         android:background="@android:color/transparent"
         android:layout_marginRight="20dp" />
+
+    <EditText style="@android:style/TextAppearance.Small"
+        android:layout_width="fill_parent"
+        android:layout_height="25dp"
+        android:id="@+id/gnLsEditText"
+        android:layout_below="@+id/qtrEditText"
+        android:layout_toRightOf="@+id/gnLsView"
+        android:layout_alignBottom="@+id/gnLsView"
+        android:gravity="end"
+        android:background="@android:color/transparent"
+        android:layout_marginRight="20dp" />
+
+    <Button
+        android:id="@+id/dialogButtonClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" CLOSE "
+        android:layout_below="@+id/gnLsEditText"
+        android:layout_marginLeft="45dp" />
+
+    <Button
+        android:id="@+id/dialogButtonSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" SAVE "
+        android:layout_below="@+id/gnLsEditText"
+        android:layout_toRightOf="@+id/dialogButtonClose"
+        android:layout_marginLeft="20dp" />
 
 </RelativeLayout>
