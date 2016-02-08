@@ -6,29 +6,41 @@
     android:orientation="horizontal"
     android:weightSum="1">
 
+
+
     <RelativeLayout
         android:id="@+id/topLayout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <ImageButton
+        <Button
             android:id="@+id/btnSpeak"
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="10dp"
-            android:contentDescription="@string/speak"
-            android:src="@android:drawable/ic_btn_speak_now" />
+            android:text="New Play"
+            android:contentDescription="@string/speak" />
+
+        <Button
+            android:id="@+id/undoButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_centerHorizontal="true"
+            android:text="UNDO"
+            android:contentDescription="@string/speak" />
 
         <Button
             android:id="@+id/exportButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Export"
-            android:layout_below="@id/btnSpeak"
-            android:layout_centerInParent="true"
+            android:layout_toRightOf="@id/undoButton"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="35dp"
             android:layout_gravity="center_horizontal" />
 
         <TextView  style="@android:style/TextAppearance.Large"
@@ -38,7 +50,7 @@
             android:text="Qtr  "
             android:layout_marginTop="10dp"
             android:layout_centerInParent="true"
-            android:layout_below="@id/exportButton"
+            android:layout_below="@id/undoButton"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView  style="@android:style/TextAppearance.Large"
@@ -49,31 +61,18 @@
             android:layout_marginRight="10dp"
             android:layout_marginTop="10dp"
             android:layout_toRightOf="@id/qtrText"
-            android:layout_below="@id/exportButton"
+            android:layout_below="@id/undoButton"
             android:textAppearance="?android:attr/textAppearanceLarge" />
-
-
-        <TextView
-            android:id="@+id/txtText"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_below="@id/qtrNumberText"
-            android:layout_centerInParent="true"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_weight="1.63" />
 
         <TextView
             android:id="@+id/awayScoreNumberText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="00"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="80dp"
+            android:layout_marginRight="100dp"
             android:layout_marginTop="10dp"
-            android:layout_toLeftOf="@id/exportButton"
+            android:layout_toLeftOf="@id/qtrText"
+            android:layout_centerInParent="true"
             android:layout_below="@id/btnSpeak"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
@@ -82,11 +81,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="00"
-            android:layout_marginLeft="80dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginLeft="105dp"
             android:layout_marginTop="10dp"
-            android:layout_toRightOf="@id/exportButton"
+            android:layout_toRightOf="@id/qtrText"
             android:layout_below="@id/btnSpeak"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView  style="@android:style/TextAppearance.Large"
+            android:id="@+id/downAndDistText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginTop="10dp"
+            android:layout_centerInParent="true"
+            android:layout_below="@id/qtrText"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <ImageView
@@ -106,6 +114,18 @@
             android:src="@drawable/american_football"
             android:layout_alignLeft="@+id/homeScoreNumberText"
             android:visibility="visible"/>
+
+        <TextView
+            android:id="@+id/txtText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/downAndDistText"
+            android:layout_centerInParent="true"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_weight="1.63" />
 
         <requestFocus />
     </RelativeLayout>
