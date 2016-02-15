@@ -395,46 +395,47 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         tempTeam = getOffensiveTeam();
 
         if (playerNumber != 0) {
-            currentPlayer = homeTeam.getPlayer(playerNumber);
+            currentPlayer = tempTeam.getPlayer(playerNumber);
 
             if (currentPlayer == null) {
                 currentPlayer = new Player(true, playerNumber);
-                homeTeam.addPlayer(currentPlayer);
+                tempTeam.addPlayer(currentPlayer);
             }
 
             if (recNumber != 0) {
-                recPlayer = homeTeam.getPlayer(recNumber);
+                recPlayer = tempTeam.getPlayer(recNumber);
 
                 if (recPlayer == null) {
                     recPlayer = new Player(true, recNumber);
-                    homeTeam.addPlayer(recPlayer);
+                    tempTeam.addPlayer(recPlayer);
                 }
             }
 
             switch (playType) {
                 case "Pass":
-                    homeTeam.getPlayer(playerNumber).updatePassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag);
+                    tempTeam.getPlayer(playerNumber).updatePassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag);
                     if (!interceptionFlag && !incompleteFlag)
-                        homeTeam.getPlayer(recNumber).updateRecStats(gnLs, fumbleFlag, touchdownFlag);
+                        tempTeam.getPlayer(recNumber).updateRecStats(gnLs, fumbleFlag, touchdownFlag);
                     break;
                 case "Run":
-                    homeTeam.getPlayer(playerNumber).updateRunStats(gnLs, fumbleFlag, touchdownFlag);
+                    tempTeam.getPlayer(playerNumber).updateRunStats(gnLs, fumbleFlag, touchdownFlag);
                     break;
-                case "Field Goal" :
+                case "Field Goal":
                     break;
                 case "Kickoff":
-                    homeTeam.getPlayer(playerNumber).updateKickRetStats(gnLs, fumbleFlag, touchdownFlag);
+                    tempTeam.getPlayer(playerNumber).updateKickRetStats(returnYds, fumbleFlag, touchdownFlag);
                     break;
-                case "Punt" :
-                    homeTeam.getPlayer(playerNumber).updatePuntRetStats(gnLs, fumbleFlag, touchdownFlag);
+                case "Punt":
+                    tempTeam.getPlayer(playerNumber).updatePuntRetStats(returnYds, fumbleFlag, touchdownFlag);
                     break;
-                case "PAT" :
+                case "PAT":
                     break;
-                case "2 Pt. Conversion" :
+                case "2 Pt. Conversion":
                     break;
-                case "Penalty" :
+                case "Penalty":
                     break;
             }
+            //defensive stat update method here
         }
 
         if (homeTeam.getOnOffense()) {
@@ -725,7 +726,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                     prevWord = curWord;
                     continue;
                 }
-                if (recFlag) {
+                if ((recNumber != 0) || fumbleFlag || interceptionFlag) {
+                    defNumber = intParse(curWord);
+                }
+                else if (recFlag) {
                     recNumber = intParse(curWord);
                 }
                 else {
@@ -767,7 +771,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 continue;
             }
 
-            if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted") || Objects.equals(curWord, "punch")) {
+            if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted") || Objects.equals(curWord, "punch") || curWord.equals("put")) {
 
                 playType = "Punt";
                 twowordsago = prevWord;
@@ -876,8 +880,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                             + " for " + String.valueOf(gnLs) + " yards";
                 }
                 else if (interceptionFlag) {
-                    playResult =  "Number " + String.valueOf(playerNumber) + " pass intercepted by number " + String.valueOf(recNumber);
+                    playResult =  "Number " + String.valueOf(playerNumber) + " pass intercepted by number " + String.valueOf(defNumber);
                     changePossession();
+                    downNum = 1;
+                    dist = 10;
                 }
                 else {
                     if (recNumber == 0)
@@ -1040,6 +1046,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         if (fumbleFlag) {
             playResult = playResult.concat(", fumble recovered by number " + String.valueOf(defNumber));
             changePossession();
+            downNum = 1;
+            dist = 10;
         }
 
         if (returnFlag==1 && !(playType.equals("Kickoff") || playType.equals("Punt"))) {
