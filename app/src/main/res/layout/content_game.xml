@@ -30,8 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:layout_centerHorizontal="true"
-            android:text="UNDO"
-            android:contentDescription="@string/speak" />
+            android:text="Undo" />
 
         <Button
             android:id="@+id/exportButton"

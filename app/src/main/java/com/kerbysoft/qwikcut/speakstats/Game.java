@@ -1,7 +1,9 @@
 package com.kerbysoft.qwikcut.speakstats;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class Game extends AppCompatActivity implements View.OnClickListener{
+public class Game extends AppCompatActivity implements View.OnClickListener {
 
     protected static final int RESULT_SPEECH = 1;
 
@@ -46,17 +48,17 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
     String csvhomestatslist = "home_stats_list.csv";
     String csvawaystatslist = "away_stats_list.csv";
     FileOutputStream outputStream;
-    String hometeamname="", awayteamname="", gameName = "";
-    Integer playerNumber = 0, recNumber=0, defNumber=0, ydLn = 0, gnLs=0,  fieldPos = 0, playCounter = 0,
-            downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown=0, prevDist=0, returnYds=0;
+    String hometeamname = "", awayteamname = "", gameName = "";
+    Integer playerNumber = 0, recNumber = 0, defNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
+            downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown = 0, prevDist = 0, returnYds = 0;
     Integer lossFlag, returnFlag, fgMadeFlag, oppTerFlag;
-    boolean interceptionFlag=false, fumbleFlag=false, incompleteFlag=false, touchdownFlag=false, defensivePenalty=false,
-            recFlag=false, touchbackFlag=false, faircatchFlag=false;
+    boolean interceptionFlag = false, fumbleFlag = false, incompleteFlag = false, touchdownFlag = false, defensivePenalty = false,
+            recFlag = false, touchbackFlag = false, faircatchFlag = false;
     String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
     boolean invalidPlay = false;
     static final String logtag = "MyLogTag";
-    public Team awayTeam  = new Team();
-    public Team homeTeam  = new Team();
+    public Team awayTeam = new Team();
+    public Team homeTeam = new Team();
     public ArrayList<Play> gamePlays = new ArrayList<Play>();
 
     @Override
@@ -111,8 +113,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             projDir.mkdirs();
     }
 
-    public void onClick(View v){
-        switch(v.getId()){
+    public void onClick(View v) {
+        switch (v.getId()) {
             case R.id.btnSpeak: {
 
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -142,7 +144,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 if (awayStatsFile.exists())
                     awayStatsFile.delete();
 
-                for (int i=0; i<3; i++) {
+                for (int i = 0; i < 3; i++) {
                     File file = null;
                     ArrayList<String> tempList = new ArrayList<>();
                     ArrayList<Player> playerList = new ArrayList<>();
@@ -171,7 +173,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                         e.printStackTrace();
                     }
 
-                    if (i==0) {
+                    if (i == 0) {
                         for (String output : tempList) {
                             try {
                                 fileStream.write(output.getBytes());
@@ -179,8 +181,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                                 e.printStackTrace();
                             }
                         }
-                    }
-                    else {
+                    } else {
                         try {
                             fileStream.write(labels.getBytes());
                         } catch (IOException e) {
@@ -207,15 +208,41 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             }
 
             case R.id.undoButton: {
-                Toast t = Toast.makeText(getApplicationContext(), "Functionality will be added soon", Toast.LENGTH_SHORT);
-                t.show();
+                Log.d(logtag, "Undo play " + playCounter);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+                builder
+                        .setMessage("Are you sure you want to undo the last play?")
+                        .setPositiveButton("Yes",  new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                Toast.makeText(getApplicationContext(), "Play Deleted", Toast.LENGTH_SHORT).show();
+                                undoStats();
+                                if (playCounter > 0) {
+                                    revertToLastPlay(gamePlays.get(playCounter - 1));
+                                }
+                                else {
+                                    completeReset();
+                                    resetValues();
+                                }
+                                gamePlays.remove(--playCounter);
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog,int id) {
+                                dialog.cancel();
+                            }
+                        })
+                        .show();
             }
 
-            default : {
+            default: {
                 Integer id = v.getId();
                 Play play = gamePlays.get(id - 1);
 
-                Log.d(logtag, String.valueOf(id) + ", " + play.getResult());
+                Log.d(logtag, String.valueOf(id) + ", " + play.result);
 
                 /*
                 Toast t = Toast.makeText(getApplicationContext(), "Functionality to be added soon...\n" + play.getResult(), Toast.LENGTH_SHORT);
@@ -246,14 +273,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 TextView quarterEdit = (TextView) dialog.findViewById(R.id.qtrEditText);
                 TextView gnLsEdit = (TextView) dialog.findViewById(R.id.gnLsEditText);
 
-                result.setText(play.getResult());
-                playTypeEdit.setText(play.getPlayType());
-                mainPlayerEdit.setText(String.valueOf(play.getPlayerNumber()));
-                receiverEdit.setText(String.valueOf(play.getRecNumber()));
-                downEdit.setText(String.valueOf(play.getDownNum()));
-                distanceEdit.setText(String.valueOf(play.getDist()));
-                quarterEdit.setText(String.valueOf(play.getQtr()));
-                gnLsEdit.setText(String.valueOf(play.getGnLs()));
+                result.setText(play.result);
+                playTypeEdit.setText(play.playType);
+                mainPlayerEdit.setText(String.valueOf(play.playerNumber));
+                receiverEdit.setText(String.valueOf(play.recNumber));
+                downEdit.setText(String.valueOf(play.downNum));
+                distanceEdit.setText(String.valueOf(play.dist));
+                quarterEdit.setText(String.valueOf(play.qtr));
+                gnLsEdit.setText(String.valueOf(play.gnLs));
 
                 Button dialogCloseButton = (Button) dialog.findViewById(R.id.dialogButtonClose);
                 Button dialogSaveButton = (Button) dialog.findViewById(R.id.dialogButtonSave);
@@ -280,6 +307,24 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 break;
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle("Closing Activity")
+                .setMessage("Are you sure you want to close this activity?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
     @Override
@@ -315,21 +360,21 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                             //creating a new play and adding its attributes, then adding it to the ArrayList of plays
                             Play currentPlay = new Play();
 
-                            currentPlay.setDist(prevDist);
-                            currentPlay.setDownNum(prevDown);
-                            currentPlay.setFgDistance(fgDistance);
-                            currentPlay.setFgMadeFlag(fgMadeFlag);
-                            currentPlay.setFieldPos(fieldPos);
-                            currentPlay.setYdLn(ydLn);
-                            currentPlay.setGnLs(gnLs);
-                            currentPlay.setIncompleteFlag(incompleteFlag);
-                            currentPlay.setPlayCount(playCounter);
-                            currentPlay.setPlayerNumber(playerNumber);
-                            currentPlay.setPlayType(playType);
-                            currentPlay.setQtr(qtr);
-                            currentPlay.setRecNumber(recNumber);
-                            currentPlay.setReturnFlag(returnFlag);
-                            currentPlay.setResult(result);
+                            currentPlay.dist = prevDist;
+                            currentPlay.downNum = prevDown;
+                            currentPlay.fgDistance = fgDistance;
+                            currentPlay.fgMadeFlag = fgMadeFlag;
+                            currentPlay.fieldPos = fieldPos;
+                            currentPlay.ydLn = ydLn;
+                            currentPlay.gnLs = gnLs;
+                            currentPlay.incompleteFlag = incompleteFlag;
+                            currentPlay.playCount = playCounter;
+                            currentPlay.playerNumber = playerNumber;
+                            currentPlay.playType = playType;
+                            currentPlay.qtr = qtr;
+                            currentPlay.recNumber = recNumber;
+                            currentPlay.returnFlag = returnFlag;
+                            currentPlay.result = result;
                             currentPlay.touchdownFlag = touchdownFlag;
                             currentPlay.defNumber = defNumber;
                             currentPlay.fumbleFlag = fumbleFlag;
@@ -365,12 +410,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                                     downAndDistTextView.setText("4th and " + dist);
                                     break;
                             }
-                        }
-                        else
+                        } else
                             qtrTextView.setText(String.valueOf(qtr));
 
-                    }
-                    else {
+                    } else {
                         if (playCounter > 0)
                             revertToLastPlay(gamePlays.get(playCounter - 1));
                         else {
@@ -440,11 +483,52 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
 
         if (homeTeam.getOnOffense()) {
             homeTeam = tempTeam;
+        } else {
+            awayTeam = tempTeam;
         }
+    }
+
+    private void undoStats() {
+        Player currentPlayer, recPlayer;
+        Team tempTeam;
+
+        tempTeam = getOffensiveTeam();
+
+        switch (playType) {
+            case "Pass":
+                tempTeam.getPlayer(playerNumber).undoPassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag);
+                if (!interceptionFlag && !incompleteFlag)
+                    tempTeam.getPlayer(recNumber).undoRecStats(gnLs, fumbleFlag, touchdownFlag);
+                break;
+            case "Run":
+                tempTeam.getPlayer(playerNumber).undoRunStats(gnLs, fumbleFlag, touchdownFlag);
+                break;
+            case "Field Goal":
+                break;
+            case "Kickoff":
+                tempTeam.getPlayer(playerNumber).undoKickRetStats(returnYds, fumbleFlag, touchdownFlag);
+                break;
+            case "Punt":
+                tempTeam.getPlayer(playerNumber).undoPuntRetStats(returnYds, fumbleFlag, touchdownFlag);
+                break;
+            case "PAT":
+                break;
+            case "2 Pt. Conversion":
+                break;
+            case "Penalty":
+                break;
+        }
+        //defensive stat update method here
+
+        if(homeTeam.getOnOffense()) {
+            homeTeam = tempTeam;
+        }
+
         else {
             awayTeam = tempTeam;
         }
     }
+
 
     public Team getOffensiveTeam() {
         if (homeTeam.getOnOffense())
@@ -472,21 +556,21 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
     }
 
     private void revertToLastPlay(Play lastPlay) {
-        dist = lastPlay.getDist();
-        downNum = lastPlay.getDownNum();
-        fgDistance = lastPlay.getFgDistance();
-        fgMadeFlag = lastPlay.getFgMadeFlag();
-        fieldPos = lastPlay.getFieldPos();
-        ydLn= lastPlay.getYdLn();
-        gnLs = lastPlay.getGnLs();
-        incompleteFlag = lastPlay.getIncompleteFlag();
-        playerNumber = lastPlay.getPlayerNumber();
+        dist = lastPlay.dist;
+        downNum = lastPlay.downNum;
+        fgDistance = lastPlay.fgDistance;
+        fgMadeFlag = lastPlay.fgMadeFlag;
+        fieldPos = lastPlay.fieldPos;
+        ydLn= lastPlay.ydLn;
+        gnLs = lastPlay.gnLs;
+        incompleteFlag = lastPlay.incompleteFlag;
+        playerNumber = lastPlay.playerNumber;
         defNumber = lastPlay.defNumber;
-        playType = lastPlay.getPlayType();
-        qtr = lastPlay.getQtr();
-        recNumber = lastPlay.getRecNumber();
-        returnFlag = lastPlay.getReturnFlag();
-        result = lastPlay.getResult();
+        playType = lastPlay.playType;
+        qtr = lastPlay.qtr;
+        recNumber = lastPlay.recNumber;
+        returnFlag = lastPlay.returnFlag;
+        result = lastPlay.result;
         returnYds = lastPlay.returnYds;
     }
 
@@ -1076,127 +1160,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
         boolean incompleteFlag, touchdownFlag, recFlag, touchbackFlag, faircatchFlag, interceptionFlag, fumbleFlag;
         String playType, result = "";
 
-        public Integer getPlayerNumber() {
-            return playerNumber;
-        }
-
-        public void setPlayerNumber(Integer playerNumber) {
-            this.playerNumber = playerNumber;
-        }
-
-        public Integer getRecNumber() {
-            return recNumber;
-        }
-
-        public void setRecNumber(Integer recNumber) {
-            this.recNumber = recNumber;
-        }
-
-        public Integer getYdLn() {
-            return ydLn;
-        }
-
-        public void setYdLn(Integer ydLn) {
-            this.ydLn = ydLn;
-        }
-
-        public Integer getGnLs() {
-            return gnLs;
-        }
-
-        public void setGnLs(Integer gnLs) {
-            this.gnLs = gnLs;
-        }
-
-        public Integer getFieldPos() {
-            return fieldPos;
-        }
-
-        public void setFieldPos(Integer fieldPos) {
-            this.fieldPos = fieldPos;
-        }
-
-        public Integer getDownNum() {
-            return downNum;
-        }
-
-        public void setDownNum(Integer downNum) {
-            this.downNum = downNum;
-        }
-
-        public Integer getDist() {
-            return dist;
-        }
-
-        public void setDist(Integer dist) {
-            this.dist = dist;
-        }
-
-        public Integer getQtr() {
-            return qtr;
-        }
-
-        public void setQtr(Integer qtr) {
-            this.qtr = qtr;
-        }
-
-        public Integer getFgDistance() {
-            return fgDistance;
-        }
-
-        public void setFgDistance(Integer fgDistance) {
-            this.fgDistance = fgDistance;
-        }
-
-        public Integer getPlayCount() {
-            return playCount;
-        }
-
-        public void setPlayCount(Integer playCount) {
-            this.playCount = playCount;
-        }
-
-        public Integer getFgMadeFlag() {
-            return fgMadeFlag;
-        }
-
-        public void setFgMadeFlag(Integer fgMadeFlag) {
-            this.fgMadeFlag = fgMadeFlag;
-        }
-
-        public Integer getReturnFlag() {
-            return returnFlag;
-        }
-
-        public void setReturnFlag(Integer returnFlag) {
-            this.returnFlag = returnFlag;
-        }
-
-        public boolean getIncompleteFlag() {
-            return incompleteFlag;
-        }
-
-        public void setIncompleteFlag(boolean incompleteFlag) {
-            this.incompleteFlag = incompleteFlag;
-        }
-
-        public String getPlayType() {
-            return playType;
-        }
-
-        public void setPlayType(String playType) {
-            this.playType = playType;
-        }
-
-        public String getResult() {
-            return result;
-        }
-
-        public void setResult(String result) {
-            this.result = result;
-        }
-
-
     }
 
     /**
@@ -1287,6 +1250,17 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             passatmpts++;
         }
 
+        private void undoPassStats(int yds, boolean pic, boolean incompletion, boolean td) {
+            passyds -=  yds;
+            if (pic)
+                ints--;
+            if(!incompletion)
+                passcomps--;
+            if (td)
+                passtds--;
+            passatmpts--;
+        }
+
         private void updateRunStats(int yds, boolean fumb, boolean td) {
             runyds +=  yds;
             if (fumb)
@@ -1294,6 +1268,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             if (td)
                 runtds++;
             runatmpts++;
+        }
+
+        private void undoRunStats(int yds, boolean fumb, boolean td) {
+            runyds -=  yds;
+            if (fumb)
+                fumbles--;
+            if (td)
+                runtds--;
+            runatmpts--;
         }
 
         private void updateRecStats(int yds, boolean fumb, boolean td) {
@@ -1304,6 +1287,16 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 rectds++;
             catches++;
         }
+
+        private void undoRecStats(int yds, boolean fumb, boolean td) {
+            recyds -=  yds;
+            if (fumb)
+                fumbles--;
+            if (td)
+                rectds--;
+            catches--;
+        }
+
         private void updatePuntRetStats(int yds, boolean fumb, boolean td) {
             puntrettds +=  yds;
             if (fumb)
@@ -1312,6 +1305,16 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
                 puntrettds++;
             puntreturns++;
         }
+
+        private void undoPuntRetStats(int yds, boolean fumb, boolean td) {
+            puntrettds -=  yds;
+            if (fumb)
+                fumbles--;
+            if (td)
+                puntrettds--;
+            puntreturns--;
+        }
+
         private void updateKickRetStats(int yds, boolean fumb, boolean td) {
             kickrettds +=  yds;
             if (fumb)
@@ -1319,6 +1322,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener{
             if (td)
                 kickrettds++;
             kickreturns++;
+        }
+
+        private void undoKickRetStats(int yds, boolean fumb, boolean td) {
+            kickrettds -=  yds;
+            if (fumb)
+                fumbles--;
+            if (td)
+                kickrettds--;
+            kickreturns--;
         }
 
     }
