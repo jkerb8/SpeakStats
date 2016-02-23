@@ -40,6 +40,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     TextView downAndDistTextView;
     ImageView awayPossImageView;
     ImageView homePossImageView;
+    ArrayList<Button> buttonArrayList = new ArrayList<>();
     public ArrayList<String> playList;
     public ArrayList<String> csvList;
     public ArrayList<String> statsList;
@@ -63,8 +64,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Button btnSpeak;
-        Button exportButton;
+        Button btnSpeak, exportButton, undoButton;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_game);
 
@@ -97,14 +97,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         homePossImageView.setVisibility(ImageView.INVISIBLE);
 
         exportButton = (Button) findViewById(R.id.exportButton);
+        undoButton = (Button) findViewById(R.id.undoButton);
 
         //txtText.setText("This is where this text will be.");
 
         btnSpeak = (Button) findViewById(R.id.btnSpeak);
 
         btnSpeak.setOnClickListener(this);
-
         exportButton.setOnClickListener(this);
+        undoButton.setOnClickListener(this);
 
         String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/" + gameName;
 
@@ -208,34 +209,40 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             }
 
             case R.id.undoButton: {
-                Log.d(logtag, "Undo play " + playCounter);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                if (playCounter > 0) {
 
-                builder
-                        .setMessage("Are you sure you want to undo the last play?")
-                        .setPositiveButton("Yes",  new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                Toast.makeText(getApplicationContext(), "Play Deleted", Toast.LENGTH_SHORT).show();
-                                undoStats();
-                                if (playCounter > 0) {
-                                    revertToLastPlay(gamePlays.get(playCounter - 1));
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+                    builder
+                            .setMessage("Are you sure you want to undo the last play?")
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Toast.makeText(getApplicationContext(), "Play Deleted", Toast.LENGTH_SHORT).show();
+                                    undoStats();
+                                    if (playCounter > 1) {
+                                        revertToLastPlay(gamePlays.get(playCounter - 1));
+                                    } else {
+                                        completeReset();
+                                        resetValues();
+                                    }
+                                    removeButton(playCounter);
+                                    gamePlays.remove(--playCounter);
                                 }
-                                else {
-                                    completeReset();
-                                    resetValues();
+                            })
+                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
                                 }
-                                gamePlays.remove(--playCounter);
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog,int id) {
-                                dialog.cancel();
-                            }
-                        })
-                        .show();
+                            })
+                            .show();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "No plays to undo...", Toast.LENGTH_SHORT).show();
+                }
+                break;
             }
 
             default: {
@@ -489,7 +496,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     }
 
     private void undoStats() {
-        Player currentPlayer, recPlayer;
         Team tempTeam;
 
         tempTeam = getOffensiveTeam();
@@ -688,7 +694,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         playBtn.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         ((RelativeLayout) findViewById(R.id.scrollRelLayout)).addView(playBtn, rl);
         playBtn.setOnClickListener(this);
+        buttonArrayList.add(playBtn);
+    }
 
+    private void removeButton(Integer playNum) {
+
+        int id = playNum - 1;
+        Button btn = buttonArrayList.get(id);
+        btn.setVisibility(View.GONE);
+        buttonArrayList.remove(id);
     }
 
     private String analyzePlay(String spokenText) {
