@@ -54,10 +54,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     String hometeamname = "", awayteamname = "", gameName = "";
     Integer playerNumber = 0, recNumber = 0, defNumber = 0, tacklerNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
             downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown = 0, prevDist = 0, returnYds = 0;
-    Integer returnFlag, fgMadeFlag, oppTerFlag;
+    Integer returnFlag,oppTerFlag;
     boolean interceptionFlag = false, fumbleFlag = false, incompleteFlag = false, touchdownFlag = false, defensivePenalty = false,
             recFlag = false, touchbackFlag = false, faircatchFlag = false, fumbleRecFlag=false, tackleflag=false, sackflag=false,
-            lossFlag = false;
+            lossFlag = false, fgMadeFlag = false;
     String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
     boolean invalidPlay = false;
     static final String logtag = "MyLogTag";
@@ -158,7 +158,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     File file = null;
                     ArrayList<String> tempList = new ArrayList<>();
                     ArrayList<Player> playerList = new ArrayList<>();
-                    String offLabels = "Number, Pass Atmpts, Pass Comps, Pass Yds, Pass TDs, Run Atmpts, Run Yds, Run TDs, Receptions, Rec Yds, Rec TDs\n";
+                    String offLabels = "Number, Pass Atmpts, Pass Comps, Pass Yds, Pass TDs, INTs, Run Atmpts, Run Yds, Run TDs, Receptions, Rec Yds, Rec TDs\n";
                     String defLabels = "Number, Tackles, TFL, Sacks, Forced Fumbles, Fumble Recs, Interceptions, Def TDs\n";
                     String temp = "";
 
@@ -210,7 +210,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                         for (Player player : playerList) {
                             if (player.offensive) {
                                 temp = String.valueOf(player.number) + ", " + String.valueOf(player.passatmpts) + ", " + String.valueOf(player.passcomps) + ", " + String.valueOf(player.passyds)
-                                        + ", " + String.valueOf(player.passtds) + ", " + String.valueOf(player.runatmpts) + ", " + String.valueOf(player.runyds) + ", " + String.valueOf(player.runtds)
+                                        + ", " + String.valueOf(player.passtds) + ", " + String.valueOf(player.ints) + ", " + String.valueOf(player.runatmpts) + ", " + String.valueOf(player.runyds) + ", " + String.valueOf(player.runtds)
                                         + ", " + String.valueOf(player.catches) + ", " + String.valueOf(player.recyds) + ", " + String.valueOf(player.rectds) + "\n";
                                 try {
                                     fileStream.write(temp.getBytes());
@@ -266,6 +266,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                                         completeReset();
                                         resetValues();
                                     }
+                                    updateScore();
                                     removeButton(playCounter);
                                     gamePlays.remove(--playCounter);
                                 }
@@ -440,8 +441,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             statsList.add(analyzedPlay);
 
                             updateStats();
-                            awayScoreTextView.setText(String.valueOf(awayTeam.getTeamScore()));
-                            homeScoreTextView.setText(String.valueOf(homeTeam.getTeamScore()));
+                            updateScore();
 
                             switch (downNum) {
                                 case 0:
@@ -526,7 +526,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
             switch (playType) {
                 case "Pass":
-                    tempOffTeam.getPlayer(playerNumber).updatePassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag);
+                    tempOffTeam.getPlayer(playerNumber).updatePassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
                     if (tackleflag)
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
                     if (!interceptionFlag && !incompleteFlag)
@@ -584,7 +584,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
         switch (playType) {
             case "Pass":
-                tempOffTeam.getPlayer(playerNumber).undoPassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag);
+                tempOffTeam.getPlayer(playerNumber).undoPassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
                 if (tackleflag)
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
                 if (!interceptionFlag && !incompleteFlag)
@@ -647,6 +647,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         return homeTeam;
     }
 
+    public void updateScore() {
+        awayScoreTextView.setText(String.valueOf(awayTeam.getTeamScore()));
+        homeScoreTextView.setText(String.valueOf(homeTeam.getTeamScore()));
+    }
+
     private void resetValues() {
         playerNumber = 0;
         recNumber = 0;
@@ -657,7 +662,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         incompleteFlag=false;
         interceptionFlag=false;
         fumbleFlag=false;
-        fgMadeFlag=0;
+        fgMadeFlag=false;
         touchdownFlag=false;
         invalidPlay = false;
         playType = "";
@@ -673,14 +678,12 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         dist = lastPlay.dist;
         downNum = lastPlay.downNum;
         fgDistance = lastPlay.fgDistance;
-        fgMadeFlag = lastPlay.fgMadeFlag;
         fieldPos = lastPlay.fieldPos;
         ydLn= lastPlay.ydLn;
         gnLs = lastPlay.gnLs;
         incompleteFlag = lastPlay.incompleteFlag;
         playerNumber = lastPlay.playerNumber;
         defNumber = lastPlay.defNumber;
-        playType = lastPlay.playType;
         qtr = lastPlay.qtr;
         recNumber = lastPlay.recNumber;
         returnFlag = lastPlay.returnFlag;
@@ -690,13 +693,34 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         tackleflag = lastPlay.tackleflag;
         sackflag = lastPlay.sackflag;
         tacklerNumber = lastPlay.tacklerNumber;
+
+        if (touchdownFlag) {
+            getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 6);
+            Log.d(logtag, String.valueOf(touchdownFlag));
+        }
+        else if (fgMadeFlag) {
+            switch (playType) {
+                case "2 Pt. Conversion":
+                    getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 2);
+                    break;
+                case "Field Goal":
+                    getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 3);
+                    break;
+                case "PAT":
+                    getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 1);
+                    break;
+            }
+        }
+        touchdownFlag = lastPlay.touchdownFlag;
+        playType = lastPlay.playType;
+        fgMadeFlag = lastPlay.fgMadeFlag;
     }
 
     private void completeReset() {
         dist = 0;
         downNum = 1;
         fgDistance = 0;
-        fgMadeFlag = 0;
+        fgMadeFlag = false;
         fieldPos = 0;
         ydLn= 0;
         gnLs = 0;
@@ -716,6 +740,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         sackflag=false;
         tacklerNumber = 0;
         lossFlag=false;
+        getOffensiveTeam().setTeamScore(0);
+        getDefensiveTeam().setTeamScore(0);
     }
 
     Integer intParse(String word) {
@@ -777,16 +803,22 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 number = 10;
                 break;
             default:
-                if ((word.length() >= 1) || (word.length() <= 3)) {
+                if (word.length() > 2) {
+                    if (word.substring(1, 3).equals("14")) {
+                        playType = "Run";
+                        if (word.length() == 4)
+                            gnLs = intParse(word.substring(3));
+                        number = intParse(word.substring(0, 1));
+                    }
+                }
+
+                else {
                     try {
                         number = Integer.parseInt(word);
                     }
                     catch (Exception e) {
                         invalidPlay = true;
                     }
-                }
-                else {
-                    invalidPlay = true;
                 }
         }
 
@@ -860,7 +892,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 continue;
             }
 
-            if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass") || Objects.equals(curWord, "pastor")) {
+            if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass") || Objects.equals(curWord, "pastor") || curWord.equals("path")
+                    || curWord.equals("passes") || curWord.equals("paskem")) {
                 playType = "Pass";
                 prevWord = curWord;
                 recFlag = true;
@@ -913,7 +946,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 continue;
             }
 
-            if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || Objects.equals(curWord, "ram") || Objects.equals(curWord, "grand")
+            if (Objects.equals(curWord, "ran") || Objects.equals(curWord, "ranch") || Objects.equals(curWord, "run") || curWord.equals("runs") || curWord.equals("ram") || Objects.equals(curWord, "grand")
                     || Objects.equals(curWord, "rand") || Objects.equals(curWord, "rent") || Objects.equals(curWord, "ranger") || curWord.equals("read")
                     || curWord.equals("rush") || curWord.equals("rushes") || curWord.equals("rushed")) {
                 playType = "Run";
@@ -972,15 +1005,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     recNumber = intParse(curWord);
                 }
                 else {
-                    int len = curWord.length();
-                    if (len > 2) {
-                        if (curWord.substring(1, 3).equals("14")) {
-                            playType = "Run";
-                            if (len == 4)
-                                gnLs = intParse(curWord.substring(3));
-                            curWord = curWord.substring(0, 1);
-                        }
-                    }
                     playerNumber = intParse(curWord);
                 }
             }
@@ -991,16 +1015,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             }
 
             if (Objects.equals(curWord, "touchdown") || (Objects.equals(curWord, "touch") && Objects.equals(nextWord, "down"))) {
-                gnLs = 100 - fieldPos;
-                fieldPos = 100;
                 touchdownFlag = true;
-                if (homeTeam.getOnOffense()) {
-                    homeTeam.setTeamScore(homeTeam.getTeamScore() + 6);
-                }
-                else {
-                    awayTeam.setTeamScore(awayTeam.getTeamScore() + 6);
-                }
-                //add 6 pts to current team's score - need to make score variables for each team and shiz
             }
 
             if (Objects.equals(curWord, "return") || Objects.equals(curWord, "returned") || Objects.equals(curWord, "returns")) {
@@ -1010,7 +1025,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 continue;
             }
 
-            if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted") || Objects.equals(curWord, "punch") || curWord.equals("put")) {
+            if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted") || Objects.equals(curWord, "punch") || curWord.equals("put")
+                    || curWord.equals("points")) {
 
                 playType = "Punt";
                 twowordsago = prevWord;
@@ -1046,10 +1062,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             //checks if FG/PAT was good, might need more cases
             if (Objects.equals(curWord, "good") || Objects.equals(curWord, "could")) {
                 if (Objects.equals(prevWord, "no") || Objects.equals(prevWord, "not") || Objects.equals(prevWord, "knot")) {
-                    fgMadeFlag = 0;
+                    fgMadeFlag = false;
                 }
                 else
-                    fgMadeFlag = 1;
+                    fgMadeFlag = true;
             }
 
             if (Objects.equals(curWord, "opponent") || Objects.equals(curWord, "opponents") || Objects.equals(curWord, "opponent's")) {
@@ -1184,7 +1200,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 changePossession();
                 break;
             case "Field Goal":
-                if (fgMadeFlag == 1) {
+                if (fgMadeFlag) {
                     playResult = "The " + String.valueOf(fgDistance) + "-yard field goal was good";
                     if (homeTeam.getOnOffense()) {
                         homeTeam.setTeamScore(homeTeam.getTeamScore() + 1);
@@ -1204,7 +1220,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 }
                 break;
             case "PAT":
-                if (fgMadeFlag == 1) {
+                if (fgMadeFlag) {
                     playResult = "The PAT was good";
                     if (homeTeam.getOnOffense()) {
                         homeTeam.setTeamScore(homeTeam.getTeamScore() + 1);
@@ -1219,13 +1235,17 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 dist = 0;
                 break;
             case "2 Pt. Conversion":
-                playResult = "2 Pt. Conversion - fix this";
-                if (homeTeam.getOnOffense()) {
-                    homeTeam.setTeamScore(homeTeam.getTeamScore() + 1);
+                playResult = "2 Pt. Conversion is ";
+                if (fgMadeFlag) {
+                    if (homeTeam.getOnOffense()) {
+                        homeTeam.setTeamScore(homeTeam.getTeamScore() + 2);
+                    } else {
+                        awayTeam.setTeamScore(awayTeam.getTeamScore() + 2);
+                    }
+                    playResult += "good";
                 }
-                else {
-                    awayTeam.setTeamScore(awayTeam.getTeamScore() + 1);
-                }
+                else
+                    playResult += "no good";
                 downNum = 0;
                 dist = 0;
                 break;
@@ -1233,10 +1253,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 playResult = String.valueOf(gnLs) + " yard penalty";
                 if (!defensivePenalty) {
                     gnLs *= -1;
-                    playResult = playResult.concat(" on the offense");
+                    playResult = playResult + " on the offense";
                 }
                 else
-                    playResult = playResult.concat(" on the defense");
+                    playResult = playResult + " on the defense";
                 dist -= gnLs;
                 break;
             case "End":
@@ -1283,27 +1303,38 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         }
 
         if (fumbleFlag && !fumbleRecFlag) {
-            playResult = playResult.concat(", fumble recovered by the offense");
+            playResult = playResult + ", fumble recovered by the offense";
         }
 
         else if (fumbleRecFlag) {
-            playResult = playResult.concat(", fumble recovered by number " + String.valueOf(defNumber));
+            playResult = playResult + ", fumble recovered by number " + String.valueOf(defNumber);
             changePossession();
             downNum = 1;
             dist = 10;
         }
 
         if (returnFlag==1 && !(playType.equals("Kickoff") || playType.equals("Punt"))) {
-            playResult = playResult.concat(", returned for " + String.valueOf(returnYds) + " yards");
+            playResult = playResult + ", returned for " + String.valueOf(returnYds) + " yards";
             if (!touchdownFlag) {
-                playResult = playResult.concat(" to the " + String.valueOf(ydLn) + " yardline");
+                playResult = playResult + " to the " + String.valueOf(ydLn) + " yardline";
             }
         }
 
         if (touchdownFlag) {
-            playResult = playResult.concat(" for a TOUCHDOWN!");
+            playResult = playResult + " for a TOUCHDOWN!";
+            gnLs = 100 - fieldPos;
+            fieldPos = 100;
             downNum = 0;
             dist = 3;
+            if (homeTeam.getOnOffense()) {
+                homeTeam.setTeamScore(homeTeam.getTeamScore() + 6);
+            }
+            else {
+                awayTeam.setTeamScore(awayTeam.getTeamScore() + 6);
+            }
+        }
+        else if (tackleflag) {
+            playResult += " tackled by number " + String.valueOf(tacklerNumber);
         }
 
         return playResult;
@@ -1315,8 +1346,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     public class Play {
 
         Integer playerNumber, recNumber, defNumber, tacklerNumber, ydLn, gnLs,  fieldPos, downNum, dist, qtr, fgDistance, playCount, returnYds;
-        Integer lossFlag, returnFlag, fgMadeFlag, oppTerFlag;
-        boolean incompleteFlag, touchdownFlag, recFlag, touchbackFlag, faircatchFlag, interceptionFlag, fumbleFlag, fumbleRecFlag, tackleflag, sackflag;
+        Integer lossFlag, returnFlag, oppTerFlag;
+        boolean incompleteFlag, touchdownFlag, recFlag, touchbackFlag, faircatchFlag, interceptionFlag, fumbleFlag, fumbleRecFlag, tackleflag, sackflag, fgMadeFlag;
         String playType, result = "";
 
     }
@@ -1399,24 +1430,24 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             kickrettds=0; puntreturns=0; kickreturns=0; pics=0; tackles=0; tfls=0; sacks=0; fumblerecs=0; forcedfums=0; deftds=0;
         }
 
-        private void updatePassStats(int yds, boolean pic, boolean incompletion, boolean td) {
+        private void updatePassStats(int yds, boolean pic, boolean incompletion, boolean td, boolean fum) {
             passyds +=  yds;
             if (pic)
                 ints++;
             if(!incompletion)
                 passcomps++;
-            if (td)
+            if (td && !fum && !pic)
                 passtds++;
             passatmpts++;
         }
 
-        private void undoPassStats(int yds, boolean pic, boolean incompletion, boolean td) {
+        private void undoPassStats(int yds, boolean pic, boolean incompletion, boolean td, boolean fum) {
             passyds -=  yds;
             if (pic)
                 ints--;
             if(!incompletion)
                 passcomps--;
-            if (td)
+            if (td && !fum && !pic)
                 passtds--;
             passatmpts--;
         }
@@ -1425,7 +1456,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             runyds +=  yds;
             if (fumb)
                 fumbles++;
-            if (td)
+            if (td && !fumb)
                 runtds++;
             runatmpts++;
         }
@@ -1434,7 +1465,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             runyds -=  yds;
             if (fumb)
                 fumbles--;
-            if (td)
+            if (td && !fumb)
                 runtds--;
             runatmpts--;
         }
@@ -1443,7 +1474,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             recyds +=  yds;
             if (fumb)
                 fumbles++;
-            if (td)
+            if (td && !fumb)
                 rectds++;
             catches++;
         }
@@ -1452,7 +1483,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             recyds -=  yds;
             if (fumb)
                 fumbles--;
-            if (td)
+            if (td && !fumb)
                 rectds--;
             catches--;
         }
@@ -1461,7 +1492,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             puntrettds +=  yds;
             if (fumb)
                 fumbles++;
-            if (td)
+            if (td && !fumb)
                 puntrettds++;
             puntreturns++;
         }
@@ -1470,7 +1501,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             puntrettds -=  yds;
             if (fumb)
                 fumbles--;
-            if (td)
+            if (td && !fumb)
                 puntrettds--;
             puntreturns--;
         }
@@ -1479,7 +1510,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             kickrettds +=  yds;
             if (fumb)
                 fumbles++;
-            if (td)
+            if (td && !fumb)
                 kickrettds++;
             kickreturns++;
         }
@@ -1488,7 +1519,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             kickrettds -=  yds;
             if (fumb)
                 fumbles--;
-            if (td)
+            if (td && !fumb)
                 kickrettds--;
             kickreturns--;
         }
