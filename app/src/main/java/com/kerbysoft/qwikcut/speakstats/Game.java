@@ -38,6 +38,9 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     TextView homeScoreTextView;
     TextView awayScoreTextView;
     TextView downAndDistTextView;
+    TextView homeTeamNameView;
+    TextView awayTeamNameView;
+    TextView ydLnTextView;
     ImageView awayPossImageView;
     ImageView homePossImageView;
     ArrayList<Button> buttonArrayList = new ArrayList<>();
@@ -65,6 +68,9 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     public Team homeTeam = new Team();
     public ArrayList<Play> gamePlays = new ArrayList<Play>();
 
+    //this is set to false if the awayTeam has the ball, and true if the homeTeam has the ball
+    boolean possFlag = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Button btnSpeak, exportButton, undoButton;
@@ -88,9 +94,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         csvList = new ArrayList<String>();
         statsList = new ArrayList<String>();
 
+        awayTeamNameView = (TextView) findViewById(R.id.awayTeamNameText);
+        homeTeamNameView = (TextView) findViewById(R.id.homeTeamNameText);
+        awayTeamNameView.setText(awayteamname);
+        homeTeamNameView.setText(hometeamname);
+
         awayScoreTextView = (TextView) findViewById(R.id.awayScoreNumberText);
         homeScoreTextView = (TextView) findViewById(R.id.homeScoreNumberText);
         qtrTextView = (TextView) findViewById(R.id.qtrNumberText);
+        ydLnTextView = (TextView) findViewById(R.id.ydLnText);
         downAndDistTextView = (TextView) findViewById(R.id.downAndDistText);
 
         awayPossImageView = (ImageView) findViewById(R.id.awayPossImageView);
@@ -135,115 +147,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 break;
             }
             case R.id.exportButton: {
-
-                String gamePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/" + gameName;
-                File csvFile = new File(gamePath, csvplaylist);
-                File homeOffStatsFile = new File(gamePath, csvOffhomestatslist);
-                File awayOffStatsFile = new File(gamePath, csvOffawaystatslist);
-                File homeDefStatsFile = new File(gamePath, csvDefhomestatslist);
-                File awayDefStatsFile = new File(gamePath, csvDeffawaystatslist);
-
-                if (csvFile.exists())
-                    csvFile.delete();
-                if (homeOffStatsFile.exists())
-                    homeOffStatsFile.delete();
-                if (awayOffStatsFile.exists())
-                    awayOffStatsFile.delete();
-                if (homeDefStatsFile.exists())
-                    homeDefStatsFile.delete();
-                if (awayDefStatsFile.exists())
-                    awayDefStatsFile.delete();
-
-                for (int i = 0; i < 5; i++) {
-                    File file = null;
-                    ArrayList<String> tempList = new ArrayList<>();
-                    ArrayList<Player> playerList = new ArrayList<>();
-                    String offLabels = "Number, Pass Atmpts, Pass Comps, Pass Yds, Pass TDs, INTs, Run Atmpts, Run Yds, Run TDs, Receptions, Rec Yds, Rec TDs\n";
-                    String defLabels = "Number, Tackles, TFL, Sacks, Forced Fumbles, Fumble Recs, Interceptions, Def TDs\n";
-                    String temp = "";
-
-                    switch (i) {
-                        case 0:
-                            file = csvFile;
-                            tempList = csvList;
-                            break;
-                        case 1:
-                            file = homeOffStatsFile;
-                            playerList = homeTeam.getPlayers();
-                            break;
-                        case 2:
-                            file = awayOffStatsFile;
-                            playerList = awayTeam.getPlayers();
-                            break;
-                        case 3:
-                            file = homeDefStatsFile;
-                            playerList = homeTeam.getPlayers();
-                            break;
-                        case 4:
-                            file = awayDefStatsFile;
-                            playerList = awayTeam.getPlayers();
-                            break;
-                    }
-
-                    FileOutputStream fileStream = null;
-                    try {
-                        fileStream = new FileOutputStream(file);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (i == 0) {
-                        for (String output : tempList) {
-                            try {
-                                fileStream.write(output.getBytes());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                    if (i==1 || i==2){
-                        try {
-                            fileStream.write(offLabels.getBytes());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        for (Player player : playerList) {
-                            if (player.offensive) {
-                                temp = String.valueOf(player.number) + ", " + String.valueOf(player.passatmpts) + ", " + String.valueOf(player.passcomps) + ", " + String.valueOf(player.passyds)
-                                        + ", " + String.valueOf(player.passtds) + ", " + String.valueOf(player.ints) + ", " + String.valueOf(player.runatmpts) + ", " + String.valueOf(player.runyds) + ", " + String.valueOf(player.runtds)
-                                        + ", " + String.valueOf(player.catches) + ", " + String.valueOf(player.recyds) + ", " + String.valueOf(player.rectds) + "\n";
-                                try {
-                                    fileStream.write(temp.getBytes());
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        try {
-                            fileStream.write(defLabels.getBytes());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        for (Player player : playerList) {
-                            if (!player.offensive) {
-                                temp = String.valueOf(player.number) + ", " + String.valueOf(player.tackles) + ", " + String.valueOf(player.tfls) + ", " + String.valueOf(player.sacks)
-                                        + ", " + String.valueOf(player.forcedfums) + ", " + String.valueOf(player.fumblerecs) + ", " + String.valueOf(player.pics) + ", " + String.valueOf(player.deftds) + "\n";
-                                try {
-                                    fileStream.write(temp.getBytes());
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    }
-                    try {
-                        fileStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                export();
                 break;
             }
 
@@ -433,6 +337,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             currentPlay.tackleflag = tackleflag;
                             currentPlay.sackflag = sackflag;
                             currentPlay.tacklerNumber = tacklerNumber;
+                            currentPlay.possFlag = possFlag;
 
                             gamePlays.add(currentPlay);
                             addButton(result, playCounter);
@@ -442,6 +347,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
                             updateStats();
                             updateScore();
+                            updateYdLn(ydLn);
 
                             switch (downNum) {
                                 case 0:
@@ -652,6 +558,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         homeScoreTextView.setText(String.valueOf(homeTeam.getTeamScore()));
     }
 
+    public void updateYdLn(int yd) {
+        ydLnTextView.setText("YdLn: " + yd);
+    }
+
     private void resetValues() {
         playerNumber = 0;
         recNumber = 0;
@@ -693,24 +603,40 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         tackleflag = lastPlay.tackleflag;
         sackflag = lastPlay.sackflag;
         tacklerNumber = lastPlay.tacklerNumber;
+        possFlag = lastPlay.possFlag;
+
+        Team tempTeam;
+        if (possFlag)
+            tempTeam = homeTeam;
+        else
+            tempTeam = awayTeam;
 
         if (touchdownFlag) {
-            getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 6);
-            Log.d(logtag, String.valueOf(touchdownFlag));
+            if (tempTeam.getTeamScore() >= 6)
+                tempTeam.setTeamScore(getOffensiveTeam().getTeamScore() - 6);
         }
         else if (fgMadeFlag) {
             switch (playType) {
                 case "2 Pt. Conversion":
-                    getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 2);
+                    if (tempTeam.getTeamScore() >= 2)
+                        tempTeam.setTeamScore(getOffensiveTeam().getTeamScore() - 2);
                     break;
                 case "Field Goal":
-                    getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 3);
+                    if (tempTeam.getTeamScore() >= 3)
+                        tempTeam.setTeamScore(getOffensiveTeam().getTeamScore() - 3);
                     break;
                 case "PAT":
-                    getOffensiveTeam().setTeamScore(getOffensiveTeam().getTeamScore() - 1);
+                    if (tempTeam.getTeamScore() >= 1)
+                        tempTeam.setTeamScore(getOffensiveTeam().getTeamScore() - 1);
                     break;
             }
         }
+
+        if (possFlag)
+            homeTeam = tempTeam;
+        else
+            awayTeam = tempTeam;
+
         touchdownFlag = lastPlay.touchdownFlag;
         playType = lastPlay.playType;
         fgMadeFlag = lastPlay.fgMadeFlag;
@@ -729,6 +655,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         touchdownFlag=false;
         fumbleFlag=false;
         recFlag=false;
+        possFlag=false;
         playerNumber = 0;
         playType = "";
         qtr = 1;
@@ -825,17 +752,131 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         return number;
     }
 
+    private void export() {
+        String gamePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/" + gameName;
+        File csvFile = new File(gamePath, csvplaylist);
+        File homeOffStatsFile = new File(gamePath, csvOffhomestatslist);
+        File awayOffStatsFile = new File(gamePath, csvOffawaystatslist);
+        File homeDefStatsFile = new File(gamePath, csvDefhomestatslist);
+        File awayDefStatsFile = new File(gamePath, csvDeffawaystatslist);
+
+        if (csvFile.exists())
+            csvFile.delete();
+        if (homeOffStatsFile.exists())
+            homeOffStatsFile.delete();
+        if (awayOffStatsFile.exists())
+            awayOffStatsFile.delete();
+        if (homeDefStatsFile.exists())
+            homeDefStatsFile.delete();
+        if (awayDefStatsFile.exists())
+            awayDefStatsFile.delete();
+
+        for (int i = 0; i < 5; i++) {
+            File file = null;
+            ArrayList<String> tempList = new ArrayList<>();
+            ArrayList<Player> playerList = new ArrayList<>();
+            String offLabels = "Number, Pass Atmpts, Pass Comps, Pass Yds, Pass TDs, INTs, Run Atmpts, Run Yds, Run TDs, Receptions, Rec Yds, Rec TDs\n";
+            String defLabels = "Number, Tackles, TFL, Sacks, Forced Fumbles, Fumble Recs, Interceptions, Def TDs\n";
+            String temp = "";
+
+            switch (i) {
+                case 0:
+                    file = csvFile;
+                    tempList = csvList;
+                    break;
+                case 1:
+                    file = homeOffStatsFile;
+                    playerList = homeTeam.getPlayers();
+                    break;
+                case 2:
+                    file = awayOffStatsFile;
+                    playerList = awayTeam.getPlayers();
+                    break;
+                case 3:
+                    file = homeDefStatsFile;
+                    playerList = homeTeam.getPlayers();
+                    break;
+                case 4:
+                    file = awayDefStatsFile;
+                    playerList = awayTeam.getPlayers();
+                    break;
+            }
+
+            FileOutputStream fileStream = null;
+            try {
+                fileStream = new FileOutputStream(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            if (i == 0) {
+                for (String output : tempList) {
+                    try {
+                        fileStream.write(output.getBytes());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            if (i==1 || i==2){
+                try {
+                    fileStream.write(offLabels.getBytes());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                for (Player player : playerList) {
+                    if (player.offensive) {
+                        temp = String.valueOf(player.number) + ", " + String.valueOf(player.passatmpts) + ", " + String.valueOf(player.passcomps) + ", " + String.valueOf(player.passyds)
+                                + ", " + String.valueOf(player.passtds) + ", " + String.valueOf(player.ints) + ", " + String.valueOf(player.runatmpts) + ", " + String.valueOf(player.runyds) + ", " + String.valueOf(player.runtds)
+                                + ", " + String.valueOf(player.catches) + ", " + String.valueOf(player.recyds) + ", " + String.valueOf(player.rectds) + "\n";
+                        try {
+                            fileStream.write(temp.getBytes());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            else {
+                try {
+                    fileStream.write(defLabels.getBytes());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                for (Player player : playerList) {
+                    if (!player.offensive) {
+                        temp = String.valueOf(player.number) + ", " + String.valueOf(player.tackles) + ", " + String.valueOf(player.tfls) + ", " + String.valueOf(player.sacks)
+                                + ", " + String.valueOf(player.forcedfums) + ", " + String.valueOf(player.fumblerecs) + ", " + String.valueOf(player.pics) + ", " + String.valueOf(player.deftds) + "\n";
+                        try {
+                            fileStream.write(temp.getBytes());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            try {
+                fileStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void addButton(String play, Integer playNum) {
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.scrollRelLayout);
         int prevId = (playNum - 1);
+
+        layout.getLayoutParams().height += 250;
 
 
         //set the properties for button
         Button playBtn = new Button(this);
         RelativeLayout.LayoutParams rl = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.FILL_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         //int resID = getResources().getIdentifier(String.valueOf(prevId), "id", getPackageName());
-        if (playNum != 1)
+        if (playNum != 1) {
             rl.addRule(RelativeLayout.ABOVE, prevId);
+        }
 
         playBtn.setLayoutParams(rl);
         playBtn.setText("Play " + String.valueOf(playNum) + " -  " + play);
@@ -888,7 +929,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
             if (Objects.equals(curWord, "penalty") || Objects.equals(curWord, "penalties")) {
                 playType = "Penalty";
-                playCounter--;
                 continue;
             }
 
@@ -956,7 +996,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             }
 
             if (Objects.equals(curWord, "loss")) {
-                lossFlag = false;
+                lossFlag = true;
                 continue;
             }
             if (Objects.equals(curWord, "yardline") || (Objects.equals(curWord, "yard") && Objects.equals(nextWord, "line"))) {
@@ -1123,6 +1163,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             homeTeam.setOnOffense(false);
             awayTeam.setOnOffense(true);
         }
+        possFlag= homeTeam.getOnOffense();
     }
 
     private String getResult() {
@@ -1324,6 +1365,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             playResult = playResult + " for a TOUCHDOWN!";
             gnLs = 100 - fieldPos;
             fieldPos = 100;
+            ydLn = 0;
             downNum = 0;
             dist = 3;
             if (homeTeam.getOnOffense()) {
@@ -1347,7 +1389,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
         Integer playerNumber, recNumber, defNumber, tacklerNumber, ydLn, gnLs,  fieldPos, downNum, dist, qtr, fgDistance, playCount, returnYds;
         Integer lossFlag, returnFlag, oppTerFlag;
-        boolean incompleteFlag, touchdownFlag, recFlag, touchbackFlag, faircatchFlag, interceptionFlag, fumbleFlag, fumbleRecFlag, tackleflag, sackflag, fgMadeFlag;
+        boolean incompleteFlag, touchdownFlag, recFlag, touchbackFlag, faircatchFlag, interceptionFlag, fumbleFlag, fumbleRecFlag, tackleflag, sackflag, fgMadeFlag,
+                possFlag;
         String playType, result = "";
 
     }
