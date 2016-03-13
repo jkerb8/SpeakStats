@@ -55,24 +55,21 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     String csvDeffawaystatslist = "away_defensive_stats_list.csv";
     FileOutputStream outputStream;
     String hometeamname = "", awayteamname = "", gameName = "", division = "";
-    Integer fieldSize, playerNumber = 0, recNumber = 0, defNumber = 0, tacklerNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
+    Integer fieldSize = 0, playerNumber = 0, recNumber = 0, defNumber = 0, tacklerNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
             downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown = 0, prevDist = 0, returnYds = 0;
     Integer returnFlag,oppTerFlag;
     boolean interceptionFlag = false, fumbleFlag = false, incompleteFlag = false, touchdownFlag = false, defensivePenalty = false,
             recFlag = false, touchbackFlag = false, faircatchFlag = false, fumbleRecFlag=false, tackleflag=false, sackflag=false,
-            lossFlag = false, fgMadeFlag = false, safetyFlag = false;
+            lossFlag = false, fgMadeFlag = false, safetyFlag = false, possFlag = false;
+    //possflag is set to false if the awayTeam has the ball, and true if the homeTeam has the ball
     String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
     boolean invalidPlay = false;
     static final String logtag = "MyLogTag";
     public Team awayTeam = new Team();
     public Team homeTeam = new Team();
     public ArrayList<Play> gamePlays = new ArrayList<Play>();
-
-    //this is set to false if the awayTeam has the ball, and true if the homeTeam has the ball
-    boolean possFlag = false;
-
-    final float scale = this.getResources().getDisplayMetrics().density;
-    int buttonSize = (int) (45 * scale + 0.5f);
+    float scale;
+    int buttonSize;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,12 +77,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_game);
 
+        scale = this.getResources().getDisplayMetrics().density;
+        buttonSize = (int) (70 * scale + 0.5f);
+
         Intent intent = getIntent(); // gets the previously created intent
 
         //pull in the the team names here and make new team instances and the game name
         hometeamname = intent.getStringExtra("homeName");
         awayteamname = intent.getStringExtra("awayName");
-        fieldSize = intParse(intent.getStringExtra("fieldSize"));
+        fieldSize = Integer.parseInt(intent.getStringExtra("fieldSize"));
         division = intent.getStringExtra("division");
 
 
@@ -188,7 +188,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                                     Toast.makeText(getApplicationContext(), "Play Deleted", Toast.LENGTH_SHORT).show();
 
                                     if (playCounter > 1) {
-                                        revertToLastPlay(gamePlays.get(playCounter - 1));
+                                        revertToLastPlay(gamePlays.get(playCounter - 2));
                                     } else {
                                         completeReset();
                                         resetValues();
@@ -214,9 +214,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
             default: {
                 Integer id = v.getId();
-                Play play = gamePlays.get(id);
+                Log.d(logtag, "ID: " + id);
+                Play play = gamePlays.get(id-1);
+                Log.d(logtag, "Result: " + play.result);
 
-                Log.d(logtag, String.valueOf(id) + ", " + play.result);
 
                 /*
                 Toast t = Toast.makeText(getApplicationContext(), "Functionality to be added soon...\n" + play.getResult(), Toast.LENGTH_SHORT);
@@ -251,8 +252,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 playTypeEdit.setText(play.playType);
                 mainPlayerEdit.setText(String.valueOf(play.playerNumber));
                 receiverEdit.setText(String.valueOf(play.recNumber));
-                downEdit.setText(String.valueOf(play.downNum));
-                distanceEdit.setText(String.valueOf(play.dist));
+                downEdit.setText(String.valueOf(play.prevDown));
+                distanceEdit.setText(String.valueOf(play.prevDist));
                 quarterEdit.setText(String.valueOf(play.qtr));
                 gnLsEdit.setText(String.valueOf(play.gnLs));
 
@@ -333,8 +334,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             //creating a new play and adding its attributes, then adding it to the ArrayList of plays
                             Play currentPlay = new Play();
 
-                            currentPlay.dist = prevDist;
-                            currentPlay.downNum = prevDown;
+                            currentPlay.prevDist = prevDist;
+                            currentPlay.prevDown = prevDown;
+                            currentPlay.downNum = downNum;
+                            currentPlay.dist = dist;
                             currentPlay.fgDistance = fgDistance;
                             currentPlay.fgMadeFlag = fgMadeFlag;
                             currentPlay.fieldPos = fieldPos;
@@ -363,7 +366,13 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             currentPlay.safetyFlag = safetyFlag;
                             currentPlay.defensivePenalty = defensivePenalty;
 
-                            gamePlays.add(currentPlay);
+                            try {
+                                gamePlays.set(playCounter - 1, currentPlay);
+                            }
+                            catch (IndexOutOfBoundsException e){
+                                gamePlays.add(currentPlay);
+                            }
+
                             addButton(result, playCounter);
                             playList.add(result);
                             csvList.add(text.get(0) + " , " + String.valueOf(playCounter) + "\n");
@@ -438,34 +447,34 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             switch (playType) {
                 case "Pass":
                     tempOffTeam.getPlayer(playerNumber).updatePassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
-                    if (tackleflag)
+                    if (tackleflag && (tacklerNumber != 0))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                    if (!interceptionFlag && !incompleteFlag)
+                    if (!interceptionFlag && !incompleteFlag && (recNumber != 0))
                         tempOffTeam.getPlayer(recNumber).updateRecStats(gnLs, fumbleFlag, touchdownFlag);
-                    if (interceptionFlag || fumbleRecFlag)
+                    if ((interceptionFlag || fumbleRecFlag) && (defNumber != 0))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(interceptionFlag, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "Run":
                     tempOffTeam.getPlayer(playerNumber).updateRunStats(gnLs, fumbleFlag, touchdownFlag);
-                    if (tackleflag)
+                    if (tackleflag && (tacklerNumber != 0))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                    if (fumbleRecFlag)
+                    if (fumbleRecFlag && (defNumber != 0))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(false, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "Field Goal":
                     break;
                 case "Kickoff":
                     tempOffTeam.getPlayer(playerNumber).updateKickRetStats(returnYds, fumbleFlag, touchdownFlag);
-                    if (tackleflag)
+                    if (tackleflag && (tacklerNumber != 0))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                    if (fumbleRecFlag)
+                    if (fumbleRecFlag && (defNumber != 0))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "Punt":
                     tempOffTeam.getPlayer(playerNumber).updatePuntRetStats(returnYds, fumbleFlag, touchdownFlag);
-                    if (tackleflag)
+                    if (tackleflag && (tacklerNumber != 0))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                    if (fumbleRecFlag)
+                    if (fumbleRecFlag && (defNumber != 0))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "PAT":
@@ -496,34 +505,34 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         switch (playType) {
             case "Pass":
                 tempOffTeam.getPlayer(playerNumber).undoPassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
-                if (tackleflag)
+                if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                if (!interceptionFlag && !incompleteFlag)
+                if ((!interceptionFlag && !incompleteFlag) && (recNumber != 0))
                     tempOffTeam.getPlayer(recNumber).undoRecStats(gnLs, fumbleFlag, touchdownFlag);
-                if (interceptionFlag || fumbleRecFlag)
+                if ((interceptionFlag || fumbleRecFlag) && (defNumber != 0))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(interceptionFlag, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Run":
                 tempOffTeam.getPlayer(playerNumber).undoRunStats(gnLs, fumbleFlag, touchdownFlag);
-                if (tackleflag)
+                if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                if (fumbleRecFlag)
+                if (fumbleRecFlag && (defNumber != 0))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(false, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Field Goal":
                 break;
             case "Kickoff":
                 tempOffTeam.getPlayer(playerNumber).undoKickRetStats(returnYds, fumbleFlag, touchdownFlag);
-                if (tackleflag)
+                if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                if (fumbleRecFlag)
+                if (fumbleRecFlag && (defNumber != 0))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Punt":
                 tempOffTeam.getPlayer(playerNumber).undoPuntRetStats(returnYds, fumbleFlag, touchdownFlag);
-                if (tackleflag)
+                if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                if (fumbleRecFlag)
+                if (fumbleRecFlag && (defNumber != 0))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "PAT":
@@ -627,11 +636,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         tacklerNumber = lastPlay.tacklerNumber;
         defensivePenalty = lastPlay.defensivePenalty;
 
-        if (possFlag != lastPlay.possFlag) {
-            changePossession();
-            possFlag = lastPlay.possFlag;
-        }
-
         Team offTeam, defTeam;
         int scoreDecrease = 0;
 
@@ -675,6 +679,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         else {
             awayTeam = offTeam;
             homeTeam = defTeam;
+        }
+
+        if (possFlag != lastPlay.possFlag) {
+            changePossession();
+            possFlag = lastPlay.possFlag;
         }
 
         touchdownFlag = lastPlay.touchdownFlag;
@@ -915,7 +924,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         int prevId = (playNum - 1);
 
         layout.getLayoutParams().height += buttonSize;
-
+        Log.d(logtag, "playcounter: " + playNum + "\n" + "ydLn: " + ydLn + "\n" + "fieldPos: " + fieldPos);
 
         //set the properties for button
         Button playBtn = new Button(this);
@@ -953,7 +962,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         prevDown = downNum;
         prevDist = dist;
 
-        String[] words = temp.split("\\s+");
+        String[] words = temp.split("[-\\s+]");
         recFlag = false; //flag that marks if there was a reception
         lossFlag = false; //flag that marks if there was a loss on the play
         returnFlag = 0; //flag that marks if there is a return on the play
@@ -1020,6 +1029,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             if (curWord.equals("sack") || curWord.equals("sacks") || curWord.equals("sacked") || curWord.equals("sac")) {
                 tackleflag=true;
                 sackflag=true;
+                playType = "Run";
                 continue;
             }
 
@@ -1063,9 +1073,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 if (returnFlag==1) {
                     returnYds = intParse(prevWord);
                 }
-                gnLs = intParse(prevWord);
-                if (lossFlag) {
-                    gnLs *= -1;
+                else {
+                    gnLs = intParse(prevWord);
+                    if (lossFlag) {
+                        gnLs *= -1;
+                    }
                 }
             }
 
@@ -1108,7 +1120,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 touchdownFlag = true;
             }
 
-            if (curWord.equals("safety") || curWord.equals("safe") || curWord.equals("safeties")) {
+            if (curWord.equals("safety") || curWord.equals("safe") || curWord.equals("safeties") || curWord.equals("saved") || curWord.equals("save")) {
                 safetyFlag = true;
             }
 
@@ -1180,20 +1192,56 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             prevWord = curWord;
         }
 
-        if ((fieldPos + gnLs) >= fieldSize) {
-            touchdownFlag = true;
+        Log.d(logtag, "fieldPos: " + fieldPos + "\n" + "ydLn: " + ydLn + "\n" + "gnLs: " + gnLs + "\n" + "fieldSize: " + fieldSize);
+
+        if (((fieldPos + gnLs) > fieldSize) && !playType.equals("PAT") && !playType.equals("Field Goal") && !playType.equals("2 Pt. Conversion")) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            builder
+                    .setMessage("Did a touchdown occur?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            Toast.makeText(getApplicationContext(), "Touchdown Confirmed", Toast.LENGTH_SHORT).show();
+                            touchdownFlag = true;
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
         }
-        else if ((fieldPos + gnLs) <= 0) {
-            safetyFlag = true;
+        else if ((fieldPos + gnLs) < 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            builder
+                    .setMessage("Did a safety occur?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            Toast.makeText(getApplicationContext(), "Safety Confirmed", Toast.LENGTH_SHORT).show();
+                            safetyFlag = true;
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
         }
         else {
             //fieldPos is 1 to fieldSize number representing field position
             fieldPos = fieldPos + gnLs;
-
             //sets ydLn to neg if in own territory, pos if in opponents territory
             calcYdLn(fieldPos);
-
         }
+
+        Log.d(logtag, "fieldPos: " + fieldPos + "\n" + "ydLn: " + ydLn + "\n" + "gnLs: " + gnLs + "\n" + "fieldSize: " + fieldSize);
 
         //putting it all together...
         String returnedPlay = String.valueOf(playCounter) + " , " + playType + " , " + String.valueOf(playerNumber) + " , " + String.valueOf(recNumber) + " , "
@@ -1237,9 +1285,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         switch (playType) {
             case "Pass":
                 if (!incompleteFlag && !interceptionFlag) {
-                    playResult = "Number " + String.valueOf(playerNumber) + " pass completed to number " + String.valueOf(recNumber);
-                    if (!touchdownFlag && !safetyFlag)
-                            playResult += " for " + String.valueOf(gnLs) + " yards";
+                    playResult = "Number " + String.valueOf(playerNumber) + " pass completed to number " + String.valueOf(recNumber)
+                            + " for " + String.valueOf(gnLs) + " yards";
                 }
                 else if (interceptionFlag) {
                     playResult =  "Number " + String.valueOf(playerNumber) + " pass intercepted by number " + String.valueOf(defNumber);
@@ -1255,10 +1302,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 }
                 break;
             case "Run":
-                playResult = "Number " + String.valueOf(playerNumber) + " ran";
-                if (!touchdownFlag && !safetyFlag) {
-                    playResult += " for " + String.valueOf(gnLs) + " yards";
-                }
+                playResult = "Number " + String.valueOf(playerNumber) + " ran" + " for " + String.valueOf(gnLs) + " yards";
                 break;
             case "Kickoff":
                 downNum=0;
@@ -1364,6 +1408,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     playResult += "no good";
                 downNum = 0;
                 dist = 0;
+                fieldPos = 0;
+                calcYdLn(fieldPos);
                 break;
             case "Penalty":
                 if (safetyFlag) {
@@ -1451,10 +1497,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         }
 
         if (touchdownFlag) {
-            gnLs = fieldSize - fieldPos;
-            fieldPos = fieldSize;
-            if (playType.equals("Pass") || playType.equals("Run"))
-                playResult += " for " + gnLs + " yards";
+            if (returnFlag == 0) {
+                gnLs = fieldSize - fieldPos;
+                fieldPos = fieldSize;
+            }
             ydLn = 0;
             downNum = 0;
             dist = 3;
@@ -1490,7 +1536,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
      */
     public class Play {
 
-        Integer playerNumber, recNumber, defNumber, tacklerNumber, ydLn, gnLs,  fieldPos, downNum, dist, qtr, fgDistance, playCount, returnYds;
+        Integer playerNumber, recNumber, defNumber, tacklerNumber, ydLn, gnLs,  fieldPos, downNum, dist, qtr, fgDistance, playCount, returnYds,
+                prevDist, prevDown;
         Integer lossFlag, returnFlag, oppTerFlag;
         boolean incompleteFlag, touchdownFlag, recFlag, touchbackFlag, faircatchFlag, interceptionFlag, fumbleFlag, fumbleRecFlag, tackleflag, sackflag, fgMadeFlag,
                 possFlag, safetyFlag, defensivePenalty;

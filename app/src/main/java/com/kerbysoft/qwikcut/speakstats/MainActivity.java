@@ -38,7 +38,7 @@ import java.util.Objects;
 public class MainActivity extends Activity implements View.OnClickListener {
 
     static final String logtag = "MyLogTag";
-    private String homeName = "", awayName = "";
+    private String homeName = "", awayName = "", fieldsize = "", division = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -72,7 +72,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private void showNewGameDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Enter the Team Names");
+        builder.setTitle("Enter the Game Information");
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -90,19 +90,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
         awayTeam.setHint("Away Team");
         layout.addView(awayTeam);
 
-        String[] divisions = new String[]{"TINY-MITE", "MITEY-MITE", "JR. PEE WEE", "PEE WEE",
+        String[] divisions = new String[]{"Select Division", "TINY-MITE", "MITEY-MITE", "JR. PEE WEE", "PEE WEE",
                         "JR. MIDGET", "MIDGET", "FRESHMAN", "JR. VARSITY", "VARSITY"};
         ArrayAdapter<String> divadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, divisions);
-        divadapter.add("Select Division");
         divisionDropdown.setAdapter(divadapter);
-        divisionDropdown.setSelection(divadapter.getCount() - 1);
+        divisionDropdown.setSelection(0);
         layout.addView(divisionDropdown);
 
-        String[] fields = new String[]{"100", "80"};
+        String[] fields = new String[]{"Select Field Size", "100", "80"};
         ArrayAdapter<String> fsadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, fields);
-        fsadapter.add("Select Field Size");
         fieldSizeDropdown.setAdapter(fsadapter);
-        fieldSizeDropdown.setSelection(fsadapter.getCount() - 1);
+        fieldSizeDropdown.setSelection(0);
         layout.addView(fieldSizeDropdown);
 
 
@@ -115,12 +113,43 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void onClick(DialogInterface dialog, int which) {
                 homeName = homeTeam.getText().toString();
                 awayName = awayTeam.getText().toString();
-                Intent intent = new Intent(MainActivity.this, Game.class);
-                intent.putExtra("homeName", homeName);
-                intent.putExtra("awayName", awayName);
-                intent.putExtra("division", divisionDropdown.getSelectedItem().toString());
-                intent.putExtra("fieldSize", fieldSizeDropdown.getSelectedItem().toString());
-                startActivity(intent);
+                division = divisionDropdown.getSelectedItem().toString();
+                fieldsize = fieldSizeDropdown.getSelectedItem().toString();
+
+                boolean failflag = false;
+
+                if (homeName.equals("")) {
+                    homeTeam.setError("Home Team is required!");
+                    Toast t = Toast.makeText(getApplicationContext(), "Please Enter a Home Team", Toast.LENGTH_SHORT);
+                    t.show();
+                    failflag = true;
+                }
+                if (awayName.equals("")) {
+                    awayTeam.setError("Away Team is required!");
+                    Toast t = Toast.makeText(getApplicationContext(), "Please Enter an Away Team", Toast.LENGTH_SHORT);
+                    t.show();
+                    failflag = true;
+                }
+                if (division.equals("Select Division")) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Please Select a Division", Toast.LENGTH_SHORT);
+                    t.show();
+                    failflag = true;
+                }
+                if (fieldsize.equals("Select Field Size")) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Please Select a Field Size", Toast.LENGTH_SHORT);
+                    t.show();
+                    failflag = true;
+                }
+
+
+                if (!failflag) {
+                    Intent intent = new Intent(MainActivity.this, Game.class);
+                    intent.putExtra("homeName", homeName);
+                    intent.putExtra("awayName", awayName);
+                    intent.putExtra("division", division);
+                    intent.putExtra("fieldSize", fieldsize);
+                    startActivity(intent);
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
