@@ -14,10 +14,12 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -77,6 +79,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // Set up the input
         final EditText homeTeam = new EditText(MainActivity.this);
         final EditText awayTeam = new EditText(MainActivity.this);
+        final Spinner divisionDropdown = new Spinner(MainActivity.this);
+        final Spinner fieldSizeDropdown = new Spinner(MainActivity.this);
         // Specify the type of input expected;
         homeTeam.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         homeTeam.setHint("Home Team");
@@ -85,6 +89,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
         awayTeam.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         awayTeam.setHint("Away Team");
         layout.addView(awayTeam);
+
+        String[] divisions = new String[]{"TINY-MITE", "MITEY-MITE", "JR. PEE WEE", "PEE WEE",
+                        "JR. MIDGET", "MIDGET", "FRESHMAN", "JR. VARSITY", "VARSITY"};
+        ArrayAdapter<String> divadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, divisions);
+        divadapter.add("Select Division");
+        divisionDropdown.setAdapter(divadapter);
+        divisionDropdown.setSelection(divadapter.getCount() - 1);
+        layout.addView(divisionDropdown);
+
+        String[] fields = new String[]{"100", "80"};
+        ArrayAdapter<String> fsadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, fields);
+        fsadapter.add("Select Field Size");
+        fieldSizeDropdown.setAdapter(fsadapter);
+        fieldSizeDropdown.setSelection(fsadapter.getCount() - 1);
+        layout.addView(fieldSizeDropdown);
+
+
 
         builder.setView(layout);
 
@@ -95,8 +116,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 homeName = homeTeam.getText().toString();
                 awayName = awayTeam.getText().toString();
                 Intent intent = new Intent(MainActivity.this, Game.class);
-                intent.putExtra("homeName", homeTeam.getText().toString());
-                intent.putExtra("awayName", awayTeam.getText().toString());
+                intent.putExtra("homeName", homeName);
+                intent.putExtra("awayName", awayName);
+                intent.putExtra("division", divisionDropdown.getSelectedItem().toString());
+                intent.putExtra("fieldSize", fieldSizeDropdown.getSelectedItem().toString());
                 startActivity(intent);
             }
         });
