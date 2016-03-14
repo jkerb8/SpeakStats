@@ -62,7 +62,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             recFlag = false, touchbackFlag = false, faircatchFlag = false, fumbleRecFlag=false, tackleflag=false, sackflag=false,
             lossFlag = false, fgMadeFlag = false, safetyFlag = false, possFlag = false;
     //possflag is set to false if the awayTeam has the ball, and true if the homeTeam has the ball
-    String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "";
+    String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "", notes = "";
     boolean invalidPlay = false;
     static final String logtag = "MyLogTag";
     public Team awayTeam = new Team();
@@ -213,10 +213,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             }
 
             default: {
-                Integer id = v.getId();
+                final Integer id = v.getId();
                 Log.d(logtag, "ID: " + id);
                 Play play = gamePlays.get(id-1);
                 Log.d(logtag, "Result: " + play.result);
+                final String notesString = "";
 
 
                 /*
@@ -237,16 +238,18 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 TextView receiver = (TextView) dialog.findViewById(R.id.receiverView);
                 TextView down = (TextView) dialog.findViewById(R.id.downView);
                 TextView distance = (TextView) dialog.findViewById(R.id.distanceView);
-                TextView quarter = (TextView) dialog.findViewById(R.id.qtrView);
+                TextView ydLn = (TextView) dialog.findViewById(R.id.ydLnView);
                 TextView gnLs = (TextView) dialog.findViewById(R.id.gnLsView);
+                TextView notes = (TextView) dialog.findViewById(R.id.notesView);
 
                 TextView playTypeEdit = (TextView) dialog.findViewById(R.id.playTypeEditText);
                 TextView mainPlayerEdit = (TextView) dialog.findViewById(R.id.mainPlayerEditText);
                 TextView receiverEdit = (TextView) dialog.findViewById(R.id.receiverEditText);
                 TextView downEdit = (TextView) dialog.findViewById(R.id.downEditText);
                 TextView distanceEdit = (TextView) dialog.findViewById(R.id.distanceEditText);
-                TextView quarterEdit = (TextView) dialog.findViewById(R.id.qtrEditText);
+                TextView ydLnEdit = (TextView) dialog.findViewById(R.id.ydLnEditText);
                 TextView gnLsEdit = (TextView) dialog.findViewById(R.id.gnLsEditText);
+                TextView notesEdit = (TextView) dialog.findViewById(R.id.notesEditText);
 
                 result.setText(play.result);
                 playTypeEdit.setText(play.playType);
@@ -254,8 +257,9 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 receiverEdit.setText(String.valueOf(play.recNumber));
                 downEdit.setText(String.valueOf(play.prevDown));
                 distanceEdit.setText(String.valueOf(play.prevDist));
-                quarterEdit.setText(String.valueOf(play.qtr));
+                ydLnEdit.setText(String.valueOf(play.ydLn));
                 gnLsEdit.setText(String.valueOf(play.gnLs));
+                notesEdit.setText(play.notes);
 
                 Button dialogCloseButton = (Button) dialog.findViewById(R.id.dialogButtonClose);
                 Button dialogSaveButton = (Button) dialog.findViewById(R.id.dialogButtonSave);
@@ -273,11 +277,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     public void onClick(View v) {
                         Toast t = Toast.makeText(getApplicationContext(), "Functionality will be added soon", Toast.LENGTH_SHORT);
                         t.show();
+                        //notesString = notesEdit.getText().toString();
+
                     }
                 });
 
                 dialog.show();
-
+                //play.notes = notesString;
+                gamePlays.set(id-1, play);
                 break;
             }
         }
@@ -1541,7 +1548,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         Integer lossFlag, returnFlag, oppTerFlag;
         boolean incompleteFlag, touchdownFlag, recFlag, touchbackFlag, faircatchFlag, interceptionFlag, fumbleFlag, fumbleRecFlag, tackleflag, sackflag, fgMadeFlag,
                 possFlag, safetyFlag, defensivePenalty;
-        String playType, result = "";
+        String playType, result = "", notes = "";
 
     }
 
