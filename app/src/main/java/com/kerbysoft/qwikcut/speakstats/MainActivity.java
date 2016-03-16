@@ -79,6 +79,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // Set up the input
         final EditText homeTeam = new EditText(MainActivity.this);
         final EditText awayTeam = new EditText(MainActivity.this);
+
+        final Spinner day = new Spinner(MainActivity.this);
+        final Spinner month = new Spinner(MainActivity.this);
+        final Spinner year = new Spinner(MainActivity.this);
+
+
+        //Drop down spinners for division and field size
         final Spinner divisionDropdown = new Spinner(MainActivity.this);
         final Spinner fieldSizeDropdown = new Spinner(MainActivity.this);
         // Specify the type of input expected;
@@ -104,6 +111,29 @@ public class MainActivity extends Activity implements View.OnClickListener {
         layout.addView(fieldSizeDropdown);
 
 
+        //array for the spinner DAY
+        String[] days = new String[]{"Select Day","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15",
+                "16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"};
+        ArrayAdapter<String> day_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, days);
+        fieldSizeDropdown.setAdapter(day_adapter);
+        fieldSizeDropdown.setSelection(0);
+        layout.addView(day);
+
+        //array for the spinner MONTH
+        String[] months = new String[]{"Select Month","1","2","3","4","5","6","7","8","9","10","11","12"};
+        ArrayAdapter<String> month_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, months);
+        fieldSizeDropdown.setAdapter(month_adapter);
+        fieldSizeDropdown.setSelection(0);
+        layout.addView(month);
+
+        //array for the spinner YEAR
+        String[] years = new String[]{"Select Year", "2016","2017","2018","2019","2020","2021","2022","2023","2024","2025","2026"};
+        ArrayAdapter<String> year_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, years);
+        fieldSizeDropdown.setAdapter(year_adapter);
+        fieldSizeDropdown.setSelection(0);
+        layout.addView(year);
+
+
 
         builder.setView(layout);
 
@@ -113,8 +143,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void onClick(DialogInterface dialog, int which) {
                 homeName = homeTeam.getText().toString();
                 awayName = awayTeam.getText().toString();
+
                 division = divisionDropdown.getSelectedItem().toString();
                 fieldsize = fieldSizeDropdown.getSelectedItem().toString();
+
+
+                day = day.getSelectedItem().toString();
+                month = month.getSelectedItem().toString();
+                year = year.getSelectedItem().toString();
+
 
                 boolean failflag = false;
 
@@ -141,12 +178,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     failflag = true;
                 }
 
+                if (day.equals("Select Day")) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Please Select a Day", Toast.LENGTH_SHORT);
+                    t.show();
+                    failflag = true;
+                }
+                if (month.equals("Select Month")) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Please Select a Month", Toast.LENGTH_SHORT);
+                    t.show();
+                    failflag = true;
+                }
+                if (day.equals("Select Year")) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Please Select a Year", Toast.LENGTH_SHORT);
+                    t.show();
+                    failflag = true;
+                }
+
 
                 if (!failflag) {
                     Intent intent = new Intent(MainActivity.this, Game.class);
                     intent.putExtra("homeName", homeName);
                     intent.putExtra("awayName", awayName);
                     intent.putExtra("division", division);
+                    intent.putExtra("fieldSize", fieldsize);
+                    intent.putExtra("day", day);
                     intent.putExtra("fieldSize", fieldsize);
                     startActivity(intent);
                 }

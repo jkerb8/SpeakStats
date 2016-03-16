@@ -69,10 +69,20 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     public Team homeTeam = new Team();
     public ArrayList<Play> gamePlays = new ArrayList<Play>();
     float scale;
+
+    //int day, month, year;
+
     int buttonSize;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        //setter methods for the date
+        /*
+        public void set_day(int day) {this.day = day;}
+        public void set_month(int month) {this.month = month;}
+        public void set_month(int year) {this.year = year;}
+        */
+
         Button btnSpeak, exportButton, undoButton;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_game);
@@ -85,6 +95,13 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         //pull in the the team names here and make new team instances and the game name
         hometeamname = intent.getStringExtra("homeName");
         awayteamname = intent.getStringExtra("awayName");
+        /*
+        //pull in the date for clarity reasons
+        day = intent.getStringExtra("day");
+        month = intent.getStringExtra("month");
+        year = intent.getStringExtra("year");
+        */
+
         fieldSize = Integer.parseInt(intent.getStringExtra("fieldSize"));
         division = intent.getStringExtra("division");
 
