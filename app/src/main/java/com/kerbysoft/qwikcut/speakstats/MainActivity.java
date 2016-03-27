@@ -38,7 +38,7 @@ import java.util.Objects;
 public class MainActivity extends Activity implements View.OnClickListener {
 
     static final String logtag = "MyLogTag";
-    private String homeName = "", awayName = "", fieldsize = "", division = "";
+    private String homeName = "", awayName = "", fieldsize = "", division = "", dayString = "", monthString = "", yearString = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -147,11 +147,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 division = divisionDropdown.getSelectedItem().toString();
                 fieldsize = fieldSizeDropdown.getSelectedItem().toString();
 
-
-                day = day.getSelectedItem().toString();
-                month = month.getSelectedItem().toString();
-                year = year.getSelectedItem().toString();
-
+                dayString = day.getSelectedItem().toString();
+                monthString = month.getSelectedItem().toString();
+                yearString = year.getSelectedItem().toString();
 
                 boolean failflag = false;
 
@@ -178,17 +176,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     failflag = true;
                 }
 
-                if (day.equals("Select Day")) {
+                if (dayString.equals("Select Day")) {
                     Toast t = Toast.makeText(getApplicationContext(), "Please Select a Day", Toast.LENGTH_SHORT);
                     t.show();
                     failflag = true;
                 }
-                if (month.equals("Select Month")) {
+                if (monthString.equals("Select Month")) {
                     Toast t = Toast.makeText(getApplicationContext(), "Please Select a Month", Toast.LENGTH_SHORT);
                     t.show();
                     failflag = true;
                 }
-                if (day.equals("Select Year")) {
+                if (dayString.equals("Select Year")) {
                     Toast t = Toast.makeText(getApplicationContext(), "Please Select a Year", Toast.LENGTH_SHORT);
                     t.show();
                     failflag = true;
@@ -201,8 +199,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     intent.putExtra("awayName", awayName);
                     intent.putExtra("division", division);
                     intent.putExtra("fieldSize", fieldsize);
-                    intent.putExtra("day", day);
-                    intent.putExtra("fieldSize", fieldsize);
+                    intent.putExtra("day", dayString);
+                    intent.putExtra("month", monthString);
+                    intent.putExtra("year", yearString);
                     startActivity(intent);
                 }
             }

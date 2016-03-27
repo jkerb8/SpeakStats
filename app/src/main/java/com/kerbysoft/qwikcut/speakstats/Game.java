@@ -56,7 +56,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     FileOutputStream outputStream;
     String hometeamname = "", awayteamname = "", gameName = "", division = "";
     Integer fieldSize = 0, playerNumber = 0, recNumber = 0, defNumber = 0, tacklerNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
-            downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown = 0, prevDist = 0, returnYds = 0;
+            downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown = 0, prevDist = 0, returnYds = 0, day, month, year;
     Integer returnFlag,oppTerFlag;
     boolean interceptionFlag = false, fumbleFlag = false, incompleteFlag = false, touchdownFlag = false, defensivePenalty = false,
             recFlag = false, touchbackFlag = false, faircatchFlag = false, fumbleRecFlag=false, tackleflag=false, sackflag=false,
@@ -69,19 +69,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     public Team homeTeam = new Team();
     public ArrayList<Play> gamePlays = new ArrayList<Play>();
     float scale;
-
-    //int day, month, year;
-
     int buttonSize;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        //setter methods for the date
-        /*
-        public void set_day(int day) {this.day = day;}
-        public void set_month(int month) {this.month = month;}
-        public void set_month(int year) {this.year = year;}
-        */
 
         Button btnSpeak, exportButton, undoButton;
         super.onCreate(savedInstanceState);
@@ -95,18 +86,16 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         //pull in the the team names here and make new team instances and the game name
         hometeamname = intent.getStringExtra("homeName");
         awayteamname = intent.getStringExtra("awayName");
-        /*
+
         //pull in the date for clarity reasons
-        day = intent.getStringExtra("day");
-        month = intent.getStringExtra("month");
-        year = intent.getStringExtra("year");
-        */
+        day = Integer.parseInt(intent.getStringExtra("day"));
+        month = Integer.parseInt(intent.getStringExtra("month"));
+        year = Integer.parseInt(intent.getStringExtra("year"));
 
         fieldSize = Integer.parseInt(intent.getStringExtra("fieldSize"));
         division = intent.getStringExtra("division");
 
-
-        gameName = division + "_" + hometeamname + "_vs_" + awayteamname;
+        gameName = month + "-" + day + "-" + year + "_" + division + "_" + hometeamname + "_vs_" + awayteamname;
 
         Log.d(logtag, hometeamname + ", " + awayteamname + ", " + gameName);
 
@@ -528,7 +517,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
         switch (playType) {
             case "Pass":
-                tempOffTeam.getPlayer(playerNumber).undoPassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
+                if (playerNumber != 0)
+                    tempOffTeam.getPlayer(playerNumber).undoPassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
                 if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
                 if ((!interceptionFlag && !incompleteFlag) && (recNumber != 0))
@@ -537,7 +527,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     tempDefTeam.getPlayer(defNumber).undoDefStats(interceptionFlag, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Run":
-                tempOffTeam.getPlayer(playerNumber).undoRunStats(gnLs, fumbleFlag, touchdownFlag);
+                if (playerNumber != 0)
+                    tempOffTeam.getPlayer(playerNumber).undoRunStats(gnLs, fumbleFlag, touchdownFlag);
                 if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
                 if (fumbleRecFlag && (defNumber != 0))
@@ -546,14 +537,16 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             case "Field Goal":
                 break;
             case "Kickoff":
-                tempOffTeam.getPlayer(playerNumber).undoKickRetStats(returnYds, fumbleFlag, touchdownFlag);
+                if (playerNumber != 0)
+                    tempOffTeam.getPlayer(playerNumber).undoKickRetStats(returnYds, fumbleFlag, touchdownFlag);
                 if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
                 if (fumbleRecFlag && (defNumber != 0))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Punt":
-                tempOffTeam.getPlayer(playerNumber).undoPuntRetStats(returnYds, fumbleFlag, touchdownFlag);
+                if (playerNumber != 0)
+                    tempOffTeam.getPlayer(playerNumber).undoPuntRetStats(returnYds, fumbleFlag, touchdownFlag);
                 if (tackleflag && (tacklerNumber != 0))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
                 if (fumbleRecFlag && (defNumber != 0))
