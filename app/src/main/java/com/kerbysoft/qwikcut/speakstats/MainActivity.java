@@ -80,14 +80,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
         final EditText homeTeam = new EditText(MainActivity.this);
         final EditText awayTeam = new EditText(MainActivity.this);
 
-        final Spinner day = new Spinner(MainActivity.this);
-        final Spinner month = new Spinner(MainActivity.this);
-        final Spinner year = new Spinner(MainActivity.this);
-
-
         //Drop down spinners for division and field size
         final Spinner divisionDropdown = new Spinner(MainActivity.this);
         final Spinner fieldSizeDropdown = new Spinner(MainActivity.this);
+
+        final Spinner dayDropdown = new Spinner(MainActivity.this);
+        final Spinner monthDropdown = new Spinner(MainActivity.this);
+        final Spinner yearDropdown = new Spinner(MainActivity.this);
+
         // Specify the type of input expected;
         homeTeam.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         homeTeam.setHint("Home Team");
@@ -110,30 +110,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
         fieldSizeDropdown.setSelection(0);
         layout.addView(fieldSizeDropdown);
 
+        //array for the spinner MONTH
+        String[] months = new String[]{"Select Month","1","2","3","4","5","6","7","8","9","10","11","12"};
+        ArrayAdapter<String> month_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, months);
+        monthDropdown.setAdapter(month_adapter);
+        monthDropdown.setSelection(0);
+        layout.addView(monthDropdown);
 
         //array for the spinner DAY
         String[] days = new String[]{"Select Day","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15",
                 "16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"};
         ArrayAdapter<String> day_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, days);
-        fieldSizeDropdown.setAdapter(day_adapter);
-        fieldSizeDropdown.setSelection(0);
-        layout.addView(day);
-
-        //array for the spinner MONTH
-        String[] months = new String[]{"Select Month","1","2","3","4","5","6","7","8","9","10","11","12"};
-        ArrayAdapter<String> month_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, months);
-        fieldSizeDropdown.setAdapter(month_adapter);
-        fieldSizeDropdown.setSelection(0);
-        layout.addView(month);
+        dayDropdown.setAdapter(day_adapter);
+        dayDropdown.setSelection(0);
+        layout.addView(dayDropdown);
 
         //array for the spinner YEAR
         String[] years = new String[]{"Select Year", "2016","2017","2018","2019","2020","2021","2022","2023","2024","2025","2026"};
         ArrayAdapter<String> year_adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, years);
-        fieldSizeDropdown.setAdapter(year_adapter);
-        fieldSizeDropdown.setSelection(0);
-        layout.addView(year);
-
-
+        yearDropdown.setAdapter(year_adapter);
+        yearDropdown.setSelection(0);
+        layout.addView(yearDropdown);
 
         builder.setView(layout);
 
@@ -147,9 +144,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 division = divisionDropdown.getSelectedItem().toString();
                 fieldsize = fieldSizeDropdown.getSelectedItem().toString();
 
-                dayString = day.getSelectedItem().toString();
-                monthString = month.getSelectedItem().toString();
-                yearString = year.getSelectedItem().toString();
+                dayString = dayDropdown.getSelectedItem().toString();
+                monthString = monthDropdown.getSelectedItem().toString();
+                yearString = yearDropdown.getSelectedItem().toString();
 
                 boolean failflag = false;
 
