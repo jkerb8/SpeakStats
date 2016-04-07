@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.RecognitionService;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -35,7 +37,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class MainActivity extends Activity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     static final String logtag = "MyLogTag";
     private String homeName = "", awayName = "", fieldsize = "", division = "", dayString = "", monthString = "", yearString = "";
@@ -54,6 +56,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
         btnNewGame.setOnClickListener(this);
 
         btnOpenGame.setOnClickListener(this);
+
+        Toolbar actionBar = (Toolbar) findViewById(R.id.actionBar);
+        actionBar.setTitle("SpeakStats");
+        setSupportActionBar(actionBar);
+
     }
 
     public void onClick(View v) {

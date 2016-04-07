@@ -8,6 +8,14 @@
     android:orientation="vertical"
     android:weightSum="1">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/actionBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
+
     <Button
         android:id="@+id/newGameBtn"
         android:layout_width="fill_parent"
@@ -26,6 +34,5 @@
         android:layout_marginRight="10dp"
         android:text="Open Game"
         android:layout_gravity="center_horizontal" />
-
 
 </LinearLayout>

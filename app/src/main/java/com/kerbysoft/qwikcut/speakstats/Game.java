@@ -5,10 +5,12 @@ import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -78,6 +80,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_game);
 
+
+
         scale = this.getResources().getDisplayMetrics().density;
         buttonSize = (int) (70 * scale + 0.5f);
 
@@ -86,6 +90,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         //pull in the the team names here and make new team instances and the game name
         hometeamname = intent.getStringExtra("homeName");
         awayteamname = intent.getStringExtra("awayName");
+
+        Toolbar actionBar = (Toolbar) findViewById(R.id.actionBar);
+        actionBar.setTitle(awayteamname + " vs. " + hometeamname);
+        actionBar.setBackgroundColor(Color.parseColor("#006400"));
+        actionBar.setTitleTextColor(Color.WHITE);
+        setSupportActionBar(actionBar);
+
+        getWindow().setStatusBarColor(Color.parseColor("#006400"));
 
         //pull in the date for clarity reasons
         day = Integer.parseInt(intent.getStringExtra("day"));
