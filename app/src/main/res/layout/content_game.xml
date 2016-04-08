@@ -21,6 +21,12 @@
         android:orientation="vertical"
         android:layout_below="@id/actionBar">
 
+        <View android:id="@+id/fakeView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            android:layout_centerInParent="true"/>
+
         <Button
             android:id="@+id/btnSpeak"
             android:layout_width="wrap_content"
@@ -29,25 +35,19 @@
             android:layout_marginRight="10dp"
             android:layout_marginTop="10dp"
             android:text="New Play"
-            android:contentDescription="@string/speak" />
+            android:contentDescription="@string/speak"
+            android:layout_alignRight="@id/fakeView"
+            android:layout_alignParentLeft="true"/>
 
         <Button
             android:id="@+id/undoButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:layout_centerHorizontal="true"
-            android:text="Undo" />
-
-        <Button
-            android:id="@+id/exportButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Export"
-            android:layout_toRightOf="@id/undoButton"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="35dp"
-            android:layout_gravity="center_horizontal" />
+            android:layout_alignLeft="@id/fakeView"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            android:text="Undo Last Play" />
 
         <TextView  style="@android:style/TextAppearance.Large"
             android:id="@+id/qtrText"
@@ -55,8 +55,8 @@
             android:layout_height="wrap_content"
             android:text="Qtr  "
             android:layout_marginTop="10dp"
-            android:layout_centerInParent="true"
-            android:layout_below="@id/undoButton"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/btnSpeak"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView  style="@android:style/TextAppearance.Large"
@@ -76,7 +76,7 @@
             android:layout_height="wrap_content"
             android:text="YdLn: 0"
             android:layout_marginTop="10dp"
-            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
             android:layout_below="@id/qtrText"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
@@ -85,9 +85,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="AwayTeam"
-            android:layout_marginLeft="15dp"
+            android:layout_marginRight="35dp"
             android:layout_marginTop="10dp"
             android:layout_below="@id/btnSpeak"
+            android:layout_alignRight="@id/fakeView"
+            android:layout_alignParentLeft="true"
+            android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView style="@android:style/TextAppearance.Medium"
@@ -95,10 +98,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="HomeTeam"
-            android:layout_marginLeft="20dp"
-            android:layout_toRightOf="@id/undoButton"
+            android:layout_marginLeft="35dp"
+            android:layout_alignLeft="@id/fakeView"
+            android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:layout_below="@id/btnSpeak"
+            android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
@@ -106,10 +111,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
-            android:layout_marginRight="100dp"
             android:layout_marginTop="10dp"
-            android:layout_toLeftOf="@id/qtrText"
-            android:layout_centerInParent="true"
+            android:layout_marginRight="35dp"
+            android:layout_alignRight="@id/fakeView"
+            android:layout_alignParentLeft="true"
+            android:gravity="center"
             android:layout_below="@id/awayTeamNameText"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
@@ -118,10 +124,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
-            android:layout_marginLeft="105dp"
             android:layout_marginTop="10dp"
-            android:layout_toRightOf="@id/qtrText"
+            android:layout_marginLeft="35dp"
+            android:layout_alignLeft="@id/fakeView"
+            android:layout_alignParentRight="true"
             android:layout_below="@id/homeTeamNameText"
+            android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView  style="@android:style/TextAppearance.Large"
@@ -130,7 +138,7 @@
             android:layout_height="wrap_content"
             android:text=""
             android:layout_marginTop="10dp"
-            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
             android:layout_below="@id/ydLnText"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
@@ -140,8 +148,9 @@
             android:id="@+id/awayPossImageView"
             android:layout_below="@+id/awayScoreNumberText"
             android:src="@drawable/american_football"
-            android:layout_alignLeft="@+id/awayScoreNumberText"
-            android:visibility="visible"/>
+            android:visibility="visible"
+            android:layout_toLeftOf="@id/fakeView"
+            android:layout_marginRight="100dp"/>
 
         <ImageView
             android:layout_width="25dp"
@@ -149,8 +158,9 @@
             android:id="@+id/homePossImageView"
             android:layout_below="@+id/homeScoreNumberText"
             android:src="@drawable/american_football"
-            android:layout_alignLeft="@+id/homeScoreNumberText"
-            android:visibility="visible"/>
+            android:visibility="visible"
+            android:layout_toRightOf="@id/fakeView"
+            android:layout_marginLeft="100dp"/>
 
         <TextView
             android:id="@+id/txtText"
@@ -160,7 +170,7 @@
             android:layout_marginRight="10dp"
             android:layout_marginTop="5dp"
             android:layout_below="@id/downAndDistText"
-            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:layout_weight="1.63" />
 
@@ -170,7 +180,8 @@
     <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@+id/topLayout">
+        android:layout_below="@+id/topLayout"
+        android:fillViewport="false">
 
         <RelativeLayout
             android:id="@+id/scrollRelLayout"

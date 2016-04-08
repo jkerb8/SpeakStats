@@ -14,6 +14,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -22,9 +24,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -57,14 +61,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     String csvDeffawaystatslist = "away_defensive_stats_list.csv";
     FileOutputStream outputStream;
     String hometeamname = "", awayteamname = "", gameName = "", division = "";
-    Integer fieldSize = 0, playerNumber = 0, recNumber = 0, defNumber = 0, tacklerNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
+    Integer fieldSize = 100, playerNumber = 0, recNumber = 0, defNumber = 0, tacklerNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
             downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown = 0, prevDist = 0, returnYds = 0, day, month, year;
     Integer returnFlag,oppTerFlag;
     boolean interceptionFlag = false, fumbleFlag = false, incompleteFlag = false, touchdownFlag = false, defensivePenalty = false,
             recFlag = false, touchbackFlag = false, faircatchFlag = false, fumbleRecFlag=false, tackleflag=false, sackflag=false,
             lossFlag = false, fgMadeFlag = false, safetyFlag = false, possFlag = false, homeTeamOpeningKickoff = false;
     //possflag is set to false if the awayTeam has the ball, and true if the homeTeam has the ball
-    String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "", notes = "";
+    String prevWord = "", playType = "", twowordsago = "", curWord, nextWord = "", result = "", notes = "", dirPath = "";
     boolean invalidPlay = false;
     static final String logtag = "MyLogTag";
     public Team awayTeam;
@@ -104,12 +108,24 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         month = Integer.parseInt(intent.getStringExtra("month"));
         year = Integer.parseInt(intent.getStringExtra("year"));
 
-        fieldSize = Integer.parseInt(intent.getStringExtra("fieldSize"));
         division = intent.getStringExtra("division");
 
-        gameName = month + "-" + day + "-" + year + "_" + division + "_" + hometeamname + "_vs_" + awayteamname;
+        gameName = month + "_" + day + "_" + year + "_" + division + "_" + hometeamname + "_vs_" + awayteamname;
 
         Log.d(logtag, hometeamname + ", " + awayteamname + ", " + gameName);
+
+        if (intent.getStringExtra("openingPastGame").equals("true")) {
+            dirPath = intent.getStringExtra("gameDir");
+            gameName = intent.getStringExtra("gameName");
+        }
+        else {
+            fieldSize = Integer.parseInt(intent.getStringExtra("fieldSize"));
+            dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/" + gameName;
+
+            File projDir = new File(dirPath);
+            if (!projDir.exists())
+                projDir.mkdirs();
+        }
 
         homeTeam = new Team(hometeamname, false);
         awayTeam = new Team(awayteamname, true);
@@ -135,7 +151,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         //if away team starts with ball
         homePossImageView.setVisibility(ImageView.INVISIBLE);
 
-        exportButton = (Button) findViewById(R.id.exportButton);
         undoButton = (Button) findViewById(R.id.undoButton);
 
         //txtText.setText("This is where this text will be.");
@@ -143,36 +158,21 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         btnSpeak = (Button) findViewById(R.id.btnSpeak);
 
         btnSpeak.setOnClickListener(this);
-        exportButton.setOnClickListener(this);
         undoButton.setOnClickListener(this);
 
-        String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/" + gameName;
-
-        File projDir = new File(dirPath);
-        if (!projDir.exists())
-            projDir.mkdirs();
-
-        openingKickoffDialog();
+        if (intent.getStringExtra("openingPastGame").equals("true")) {
+            openGame();
+        }
+        else
+            openingKickoffDialog();
     }
 
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btnSpeak: {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.exportButton:
 
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-
-                try {
-                    startActivityForResult(intent, RESULT_SPEECH);
-                    //txtText.setText("");
-                } catch (ActivityNotFoundException a) {
-                    Toast t = Toast.makeText(getApplicationContext(), "Oops! Your device doesn't support Speech to Text", Toast.LENGTH_SHORT);
-                    t.show();
-                }
-                break;
-            }
-            case R.id.exportButton: {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
                 builder
@@ -191,6 +191,32 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             }
                         })
                         .show();
+
+                return true;
+            case R.id.saveGameButton:
+                saveGame();
+                Toast.makeText(getApplicationContext(), "Game Saved", Toast.LENGTH_SHORT).show();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btnSpeak: {
+
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+
+                try {
+                    startActivityForResult(intent, RESULT_SPEECH);
+                    //txtText.setText("");
+                } catch (ActivityNotFoundException a) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Oops! Your device doesn't support Speech to Text", Toast.LENGTH_SHORT);
+                    t.show();
+                }
                 break;
             }
 
@@ -216,6 +242,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                                     undoStats();
                                     removeButton(playCounter);
                                     gamePlays.remove(--playCounter);
+                                    playList.remove(playCounter);
                                 }
                             })
                             .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -315,7 +342,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     public void onBackPressed() {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle("Closing Activity")
+                .setTitle("Exiting Game")
                 .setMessage("Unsaved data will be lost. Are you sure you want to exit the Game?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener()
                 {
@@ -331,7 +358,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_game_feed, menu);
         return true;
     }
 
@@ -378,7 +406,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             currentPlay.qtr = qtr;
                             currentPlay.recNumber = recNumber;
                             currentPlay.returnFlag = returnFlag;
-                            currentPlay.result = result;
                             currentPlay.touchdownFlag = touchdownFlag;
                             currentPlay.defNumber = defNumber;
                             currentPlay.fumbleFlag = fumbleFlag;
@@ -393,6 +420,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             currentPlay.possFlag = possFlag;
                             currentPlay.safetyFlag = safetyFlag;
                             currentPlay.defensivePenalty = defensivePenalty;
+                            currentPlay.result = result;
 
                             try {
                                 gamePlays.set(playCounter - 1, currentPlay);
@@ -402,7 +430,13 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             }
 
                             addButton(result, playCounter);
-                            playList.add(result);
+
+                            playList.add(prevDist + "," + prevDown + "," + downNum + "," + dist + "," + fgDistance + "," + fgMadeFlag + "," + fieldPos
+                                    + "," + ydLn + "," + gnLs + "," + incompleteFlag + "," + playCounter + "," + playerNumber + "," + playType + "," +
+                                    qtr + "," + recNumber + "," + returnFlag + "," + touchbackFlag + "," + defNumber + "," + fumbleFlag + "," + interceptionFlag
+                                    + "," + touchbackFlag + "," + faircatchFlag + "," + returnYds + "," + fumbleRecFlag + "," + tackleflag + "," + sackflag + "," + tacklerNumber
+                                    + "," + possFlag + "," + safetyFlag + "," + defensivePenalty + "," + result + "\n");
+
                             csvList.add(text.get(0) + " , " + String.valueOf(playCounter) + "\n");
                             statsList.add(analyzedPlay);
 
@@ -629,7 +663,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         defNumber = 0;
         tacklerNumber = 0;
         gnLs=0;
-        returnFlag=0;
         incompleteFlag=false;
         interceptionFlag=false;
         fumbleFlag=false;
@@ -645,6 +678,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         sackflag=false;
         safetyFlag = false;
         defensivePenalty = false;
+        result = "";
+        recFlag = false; //flag that marks if there was a reception
+        lossFlag = false; //flag that marks if there was a loss on the play
+        returnFlag = 0; //flag that marks if there is a return on the play
+        oppTerFlag = 0; //flag to mark the field position in opponent's territory
     }
 
     private void revertToLastPlay(Play lastPlay) {
@@ -853,6 +891,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                             gnLs = intParse(word.substring(3));
                         number = intParse(word.substring(0, 1));
                     }
+                    else {
+                        try {
+                            number = Integer.parseInt(word);
+                        }
+                        catch (Exception e) {
+                            invalidPlay = true;
+                        }
+                    }
                 }
 
                 else {
@@ -868,16 +914,159 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         return number;
     }
 
+    private void openGame() {
+        File csvFile = new File(dirPath, csvplaylist);
+
+        if (!csvFile.exists())
+            Toast.makeText(getApplicationContext(), "Game data has been deleted, unable to open game to previous state.", Toast.LENGTH_SHORT).show();
+
+        //StringBuilder text = new StringBuilder();
+        String line, currentStatus = "";
+        String words[];
+        int cntr=0;
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(csvFile));
+
+            while ((line = br.readLine()) != null) {
+                /*text.append(line);
+                text.append('\n');*/
+                if (cntr==0) {
+                    currentStatus = line;
+                    words = currentStatus.split(",");
+                    fieldSize = intParse(words[8]);
+                    Log.d(logtag, "Field Size: " + fieldSize);
+                }
+                else {
+                    words = line.split(",");
+
+                    resetValues();
+
+                    //creating a new play and adding its attributes, then adding it to the ArrayList of plays
+                    Play currentPlay = new Play();
+
+                    currentPlay.prevDist = intParse(words[0]); prevDist = intParse(words[0]);
+                    currentPlay.prevDown = intParse(words[1]); prevDown = intParse(words[1]);
+                    currentPlay.downNum = intParse(words[2]); downNum = intParse(words[2]);
+                    currentPlay.dist = intParse(words[3]); dist = intParse(words[3]);
+                    currentPlay.fgDistance = intParse(words[4]); fgDistance = intParse(words[4]);
+                    currentPlay.fgMadeFlag = Boolean.parseBoolean(words[5]); fgMadeFlag = Boolean.parseBoolean(words[5]);
+                    currentPlay.fieldPos = intParse(words[6]); fieldPos = intParse(words[6]);
+                    currentPlay.ydLn = intParse(words[7]); ydLn = intParse(words[7]);
+                    currentPlay.gnLs = intParse(words[8]); gnLs = intParse(words[8]);
+                    currentPlay.incompleteFlag = Boolean.parseBoolean(words[9]); incompleteFlag = Boolean.parseBoolean(words[9]);
+                    currentPlay.playCount = intParse(words[10]); playCounter = intParse(words[10]);
+                    currentPlay.playerNumber = intParse(words[11]); playerNumber = intParse(words[11]);
+                    currentPlay.playType = words[12]; playType = words[12];
+                    currentPlay.qtr = intParse(words[13]); qtr = intParse(words[13]);
+                    currentPlay.recNumber = intParse(words[14]); recNumber = intParse(words[14]);
+                    currentPlay.returnFlag = intParse(words[15]); returnFlag = intParse(words[15]);
+                    currentPlay.touchdownFlag = Boolean.parseBoolean(words[16]); touchdownFlag = Boolean.parseBoolean(words[16]);
+                    currentPlay.defNumber = intParse(words[17]); defNumber = intParse(words[17]);
+                    currentPlay.fumbleFlag = Boolean.parseBoolean(words[18]); fumbleFlag = Boolean.parseBoolean(words[18]);
+                    currentPlay.interceptionFlag = Boolean.parseBoolean(words[19]); interceptionFlag = Boolean.parseBoolean(words[19]);
+                    currentPlay.touchbackFlag = Boolean.parseBoolean(words[20]); touchbackFlag = Boolean.parseBoolean(words[20]);
+                    currentPlay.faircatchFlag = Boolean.parseBoolean(words[21]); faircatchFlag = Boolean.parseBoolean(words[21]);
+                    currentPlay.returnYds = intParse(words[22]); returnYds = intParse(words[22]);
+                    currentPlay.fumbleRecFlag = Boolean.parseBoolean(words[23]); fumbleRecFlag = Boolean.parseBoolean(words[23]);
+                    currentPlay.tackleflag = Boolean.parseBoolean(words[24]); tackleflag = Boolean.parseBoolean(words[24]);
+                    currentPlay.sackflag = Boolean.parseBoolean(words[25]); sackflag = Boolean.parseBoolean(words[25]);
+                    currentPlay.tacklerNumber = intParse(words[26]); tacklerNumber = intParse(words[26]);
+                    currentPlay.possFlag = Boolean.parseBoolean(words[27]); possFlag = Boolean.parseBoolean(words[27]);
+                    currentPlay.safetyFlag = Boolean.parseBoolean(words[28]); safetyFlag = Boolean.parseBoolean(words[28]);
+                    currentPlay.defensivePenalty = Boolean.parseBoolean(words[29]); defensivePenalty = Boolean.parseBoolean(words[29]);
+
+                    for (int i=30; i<words.length; i++) {
+                        if (i>30)
+                            result += ",";
+                        currentPlay.result += words[i];
+                        result += words[i];
+                    }
+
+                    try {
+                        gamePlays.set(playCounter - 1, currentPlay);
+                    }
+                    catch (IndexOutOfBoundsException e){
+                        gamePlays.add(currentPlay);
+                    }
+                    Log.d(logtag, result);
+                    addButton(result, playCounter);
+
+                    playList.add(prevDist + "," + prevDown + "," + downNum + "," + dist + "," + fgDistance + "," + fgMadeFlag + "," + fieldPos
+                            + "," + ydLn + "," + gnLs + "," + incompleteFlag + "," + playCounter + "," + playerNumber + "," + playType + "," +
+                            qtr + "," + recNumber + "," + returnFlag + "," + touchbackFlag + "," + defNumber + "," + fumbleFlag + "," + interceptionFlag
+                            + "," + touchbackFlag + "," + faircatchFlag + "," + returnYds + "," + fumbleRecFlag + "," + tackleflag + "," + sackflag + "," + tacklerNumber
+                            + "," + possFlag + "," + safetyFlag + "," + defensivePenalty + "," + result + "\n");
+
+                    updateStats();
+                }
+                cntr++;
+            }
+            br.close();
+        }
+        catch (IOException e) {
+            //You'll need to add proper error handling here
+        }
+        Log.d(logtag, currentStatus);
+        words = currentStatus.split(",");
+
+        awayTeam.setTeamScore(intParse(words[0]));
+        homeTeam.setTeamScore(intParse(words[1]));
+        possFlag = Boolean.parseBoolean(words[2]);
+        qtr = intParse(words[3]);
+        downNum = intParse(words[4]);
+        dist = intParse(words[5]);
+        fieldPos = intParse(words[6]);
+
+        updateVisuals();
+
+        if (possFlag != homeTeam.getOnOffense())
+            changePossession();
+    }
+
+    private void saveGame() {
+        File csvFile = new File(dirPath, csvplaylist);
+        String currentStatus = "";
+        currentStatus = awayTeam.getTeamScore() + "," + homeTeam.getTeamScore() + "," + possFlag + "," + qtr
+                + "," + downNum + "," + dist + "," + fieldPos  + "," + ydLn + "," + fieldSize + "\n";
+        if (csvFile.exists())
+            csvFile.delete();
+
+        FileOutputStream fileStream = null;
+        try {
+            fileStream = new FileOutputStream(csvFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        int cntr=0;
+        for (String output : playList) {
+            try {
+                if (cntr==0)
+                    fileStream.write(currentStatus.getBytes());
+                fileStream.write(output.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            cntr++;
+        }
+
+        try {
+            fileStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        export();
+    }
+
     private void export() {
         String gamePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/" + gameName;
-        File csvFile = new File(gamePath, csvplaylist);
         File homeOffStatsFile = new File(gamePath, csvOffhomestatslist);
         File awayOffStatsFile = new File(gamePath, csvOffawaystatslist);
         File homeDefStatsFile = new File(gamePath, csvDefhomestatslist);
         File awayDefStatsFile = new File(gamePath, csvDeffawaystatslist);
 
-        if (csvFile.exists())
-            csvFile.delete();
         if (homeOffStatsFile.exists())
             homeOffStatsFile.delete();
         if (awayOffStatsFile.exists())
@@ -887,7 +1076,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         if (awayDefStatsFile.exists())
             awayDefStatsFile.delete();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             File file = null;
             ArrayList<String> tempList = new ArrayList<>();
             ArrayList<Player> playerList = new ArrayList<>();
@@ -897,22 +1086,18 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
             switch (i) {
                 case 0:
-                    file = csvFile;
-                    tempList = csvList;
-                    break;
-                case 1:
                     file = homeOffStatsFile;
                     playerList = homeTeam.getPlayers();
                     break;
-                case 2:
+                case 1:
                     file = awayOffStatsFile;
                     playerList = awayTeam.getPlayers();
                     break;
-                case 3:
+                case 2:
                     file = homeDefStatsFile;
                     playerList = homeTeam.getPlayers();
                     break;
-                case 4:
+                case 3:
                     file = awayDefStatsFile;
                     playerList = awayTeam.getPlayers();
                     break;
@@ -925,15 +1110,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 e.printStackTrace();
             }
 
-            if (i == 0) {
-                for (String output : tempList) {
-                    try {
-                        fileStream.write(output.getBytes());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
             if (i==1 || i==2){
                 try {
                     fileStream.write(offLabels.getBytes());
@@ -1023,12 +1199,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         prevDist = dist;
 
         String[] words = temp.split("[-\\s+]");
-        recFlag = false; //flag that marks if there was a reception
-        lossFlag = false; //flag that marks if there was a loss on the play
-        returnFlag = 0; //flag that marks if there is a return on the play
-        oppTerFlag = 0; //flag to mark the field position in opponent's territory
-        recNumber =0;
-        gnLs = 0;
 
         for(int m=0; m<words.length; m++){
             curWord = words[m];
@@ -1346,7 +1516,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             homeTeam.setOnOffense(false);
             awayTeam.setOnOffense(true);
         }
-        possFlag= homeTeam.getOnOffense();
+        possFlag = homeTeam.getOnOffense();
     }
 
     private void flipField() {
