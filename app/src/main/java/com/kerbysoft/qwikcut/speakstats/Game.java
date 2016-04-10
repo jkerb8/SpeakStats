@@ -1227,9 +1227,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     defensivePenalty=true;
             }
 
-            if (Objects.equals(curWord, "penalty") || Objects.equals(curWord, "penalties")) {
+            if (Objects.equals(nextWord, "penalty") || Objects.equals(nextWord, "penalties")) {
                 playType = "Penalty";
-                continue;
             }
 
             if (Objects.equals(curWord, "passed") || Objects.equals(curWord, "past") || Objects.equals(curWord, "pass") || Objects.equals(curWord, "pastor") || curWord.equals("path")
@@ -1327,7 +1326,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     if (lossFlag) {
                         gnLs *= -1;
                     }
-                    fieldPos += gnLs;
+                    if (!playType.equals("Penalty"))
+                        fieldPos += gnLs;
                 }
             }
 
@@ -1496,6 +1496,12 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         }
         else {
             //sets ydLn to neg if in own territory, pos if in opponents territory
+            if (playType.equals("Penalty")) {
+                if (defensivePenalty)
+                    fieldPos += gnLs;
+                else
+                    fieldPos -= gnLs;
+            }
             calcYdLn(fieldPos);
         }
 
@@ -1809,7 +1815,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             }
         }
 
-        if (fieldPos > (fieldSize-10)  && fieldPos < fieldSize) {
+        if (fieldPos > (fieldSize-10)  && (fieldPos < fieldSize) && (dist > (fieldSize - fieldPos))) {
             dist = fieldSize - fieldPos;
         }
 
