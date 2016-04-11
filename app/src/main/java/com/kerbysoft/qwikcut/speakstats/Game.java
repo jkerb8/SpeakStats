@@ -51,10 +51,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     ImageView homePossImageView;
     ArrayList<Button> buttonArrayList = new ArrayList<>();
     public ArrayList<String> playList;
-    public ArrayList<String> csvList;
+    public ArrayList<String> gameDataList;
     public ArrayList<String> statsList;
 
     String csvplaylist = "play_list.csv";
+    String csvGameData = "game_data.csv";
     String csvOffhomestatslist = "home_offensive_stats_list.csv";
     String csvOffawaystatslist = "away_offensive_stats_list.csv";
     String csvDefhomestatslist = "home_defensive_stats_list.csv";
@@ -73,7 +74,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     static final String logtag = "MyLogTag";
     public Team awayTeam;
     public Team homeTeam;
-    public ArrayList<Play> gamePlays = new ArrayList<Play>();
+    public ArrayList<Play> gamePlays;
     float scale;
     int buttonSize;
 
@@ -131,8 +132,9 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         awayTeam = new Team(awayteamname, true);
 
         playList = new ArrayList<String>();
-        csvList = new ArrayList<String>();
+        gameDataList = new ArrayList<String>();
         statsList = new ArrayList<String>();
+        gamePlays = new ArrayList<Play>();
 
         awayTeamNameView = (TextView) findViewById(R.id.awayTeamNameText);
         homeTeamNameView = (TextView) findViewById(R.id.homeTeamNameText);
@@ -223,7 +225,6 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             case R.id.undoButton: {
 
                 if (playCounter > 0) {
-                    Log.d(logtag, "undo: " + playCounter.toString());
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -236,16 +237,16 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
                                     undoStats();
                                     if (playCounter > 1) {
-                                        Log.d(logtag, "revert: " + playCounter.toString());
-                                        revertToLastPlay(gamePlays.get(playCounter - 2));
+                                        revertToLastPlay(gamePlays.get(gamePlays.size() - 2));
                                     } else {
                                         completeReset();
                                         resetValues();
                                     }
-                                    Log.d(logtag, "remove: " + playCounter.toString());
-                                    removeButton(playCounter);
-                                    gamePlays.remove(--playCounter);
-                                    playList.remove(playCounter);
+                                    removeButton(buttonArrayList.size());
+                                    playCounter--;
+                                    gamePlays.remove(gamePlays.size() - 1);
+                                    playList.remove(playList.size() - 1);
+                                    gameDataList.remove(gameDataList.size() - 1);
                                 }
                             })
                             .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -436,13 +437,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
                             addButton(result, playCounter);
 
-                            playList.add(prevDist + "," + prevDown + "," + downNum + "," + dist + "," + fgDistance + "," + fgMadeFlag + "," + fieldPos
+                            gameDataList.add(prevDist + "," + prevDown + "," + downNum + "," + dist + "," + fgDistance + "," + fgMadeFlag + "," + fieldPos
                                     + "," + ydLn + "," + gnLs + "," + incompleteFlag + "," + playCounter + "," + playerNumber + "," + playType + "," +
                                     qtr + "," + recNumber + "," + returnFlag + "," + touchbackFlag + "," + defNumber + "," + fumbleFlag + "," + interceptionFlag
                                     + "," + touchbackFlag + "," + faircatchFlag + "," + returnYds + "," + fumbleRecFlag + "," + tackleflag + "," + sackflag + "," + tacklerNumber
                                     + "," + possFlag + "," + safetyFlag + "," + defensivePenalty + "," + homeTeam.getTeamScore() + "," + awayTeam.getTeamScore() + "," + result + "\n");
 
-                            csvList.add(text.get(0) + " , " + String.valueOf(playCounter) + "\n");
+                            playList.add(playCounter + "," + getOffensiveTeam().getTeamName() + "," + playType + "," + prevDown + "," + prevDist + "," + playerNumber + "," + recNumber +
+                                    "," + gnLs + "," + calcYdLn(fieldPos - gnLs) + "," + ydLn + "," + result + "\n");
+
                             statsList.add(analyzedPlay);
 
                             updateStats();
@@ -923,13 +926,13 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     }
 
     private void openGame() {
-        File csvFile = new File(dirPath, csvplaylist);
+        File csvFile = new File(dirPath, csvGameData);
 
         if (!csvFile.exists())
             Toast.makeText(getApplicationContext(), "Game data has been deleted, unable to open game to previous state.", Toast.LENGTH_SHORT).show();
 
         //StringBuilder text = new StringBuilder();
-        String line, currentStatus = "";
+        String line, currentStatus = "", offensiveTeam = "";
         String words[];
         int cntr=0;
 
@@ -1000,13 +1003,21 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                         gamePlays.add(currentPlay);
                     }
 
+                    if (possFlag)
+                        offensiveTeam = hometeamname;
+                    else
+                        offensiveTeam = awayteamname;
+
                     addButton(result, playCounter);
 
-                    playList.add(prevDist + "," + prevDown + "," + downNum + "," + dist + "," + fgDistance + "," + fgMadeFlag + "," + fieldPos
+                    gameDataList.add(prevDist + "," + prevDown + "," + downNum + "," + dist + "," + fgDistance + "," + fgMadeFlag + "," + fieldPos
                             + "," + ydLn + "," + gnLs + "," + incompleteFlag + "," + playCounter + "," + playerNumber + "," + playType + "," +
                             qtr + "," + recNumber + "," + returnFlag + "," + touchbackFlag + "," + defNumber + "," + fumbleFlag + "," + interceptionFlag
                             + "," + touchbackFlag + "," + faircatchFlag + "," + returnYds + "," + fumbleRecFlag + "," + tackleflag + "," + sackflag + "," + tacklerNumber
                             + "," + possFlag + "," + safetyFlag + "," + defensivePenalty + "," + homeTeam.getTeamScore() + "," + awayTeam.getTeamScore() + "," + result + "\n");
+
+                    playList.add(playCounter + "," + offensiveTeam + "," + playType + "," + prevDown + "," + prevDist + "," + playerNumber + "," + recNumber +
+                            "," + gnLs + "," + calcYdLn(fieldPos - gnLs) + "," + ydLn + "," + result + "\n");
 
                     if (possFlag != homeTeam.getOnOffense())
                         changePossession();
@@ -1035,10 +1046,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     }
 
     private void saveGame() {
-        File csvFile = new File(dirPath, csvplaylist);
-        String currentStatus = "";
-        currentStatus = awayTeam.getTeamScore() + "," + homeTeam.getTeamScore() + "," + possFlag + "," + qtr
+        File csvFile = new File(dirPath, csvGameData);
+        String currentStatus = awayTeam.getTeamScore() + "," + homeTeam.getTeamScore() + "," + possFlag + "," + qtr
                 + "," + downNum + "," + dist + "," + fieldPos  + "," + ydLn + "," + fieldSize + "\n";
+
         if (csvFile.exists())
             csvFile.delete();
 
@@ -1050,7 +1061,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         }
 
         int cntr=0;
-        for (String output : playList) {
+        for (String output : gameDataList) {
             try {
                 if (cntr==0)
                     fileStream.write(currentStatus.getBytes());
@@ -1076,6 +1087,13 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         File awayOffStatsFile = new File(gamePath, csvOffawaystatslist);
         File homeDefStatsFile = new File(gamePath, csvDefhomestatslist);
         File awayDefStatsFile = new File(gamePath, csvDeffawaystatslist);
+        File playListFile = new File(gamePath, csvplaylist);
+
+        String offLabels = "Number, Pass Atmpts, Pass Comps, Pass Yds, Pass TDs, INTs, Run Atmpts, Run Yds, Run TDs, Receptions, Rec Yds, Rec TDs\n";
+        String defLabels = "Number, Tackles, TFL, Sacks, Forced Fumbles, Fumble Recs, Interceptions, Def TDs\n";
+        String header = "Play Number, Offensive Team, Play Type, Down, Distance, Passer/Runner Number, Receiver Number, Gain/Loss, Initial Yardline, " +
+                "Resulting Yardline, Play Result\n";
+        String temp = "";
 
         if (homeOffStatsFile.exists())
             homeOffStatsFile.delete();
@@ -1085,14 +1103,14 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             homeDefStatsFile.delete();
         if (awayDefStatsFile.exists())
             awayDefStatsFile.delete();
+        if (playListFile.exists())
+            playListFile.delete();
 
-        for (int i = 0; i < 4; i++) {
+        FileOutputStream fileStream = null;
+
+        for (int i = 0; i < 5; i++) {
             File file = null;
-            ArrayList<String> tempList = new ArrayList<>();
             ArrayList<Player> playerList = new ArrayList<>();
-            String offLabels = "Number, Pass Atmpts, Pass Comps, Pass Yds, Pass TDs, INTs, Run Atmpts, Run Yds, Run TDs, Receptions, Rec Yds, Rec TDs\n";
-            String defLabels = "Number, Tackles, TFL, Sacks, Forced Fumbles, Fumble Recs, Interceptions, Def TDs\n";
-            String temp = "";
 
             switch (i) {
                 case 0:
@@ -1111,16 +1129,34 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     file = awayDefStatsFile;
                     playerList = awayTeam.getPlayers();
                     break;
+                case 4:
+                    file = playListFile;
+                    break;
             }
 
-            FileOutputStream fileStream = null;
             try {
                 fileStream = new FileOutputStream(file);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
 
-            if (i==1 || i==2){
+            if (i==4) {
+                try {
+                    fileStream.write(header.getBytes());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                for (String current : playList) {
+                    try {
+                        fileStream.write(current.getBytes());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            else if (i==0 || i==1){
                 try {
                     fileStream.write(offLabels.getBytes());
                 } catch (IOException e) {
@@ -1466,7 +1502,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
                             fieldPos = 99;
-                            calcYdLn(fieldPos);
+                            ydLn = calcYdLn(fieldPos);
                             dialog.cancel();
                         }
                     })
@@ -1488,7 +1524,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
                             fieldPos = 1;
-                            calcYdLn(fieldPos);
+                            ydLn = calcYdLn(fieldPos);
                             dialog.cancel();
                         }
                     })
@@ -1502,7 +1538,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 else
                     fieldPos -= gnLs;
             }
-            calcYdLn(fieldPos);
+            ydLn = calcYdLn(fieldPos);
         }
 
         Log.d(logtag, "fieldPos: " + fieldPos + "\n" + "ydLn: " + ydLn + "\n" + "gnLs: " + gnLs + "\n" + "fieldSize: " + fieldSize);
@@ -1535,17 +1571,21 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
     private void flipField() {
         fieldPos = fieldSize - fieldPos;
-        calcYdLn(fieldPos);
+        ydLn = calcYdLn(fieldPos);
     }
 
-    private void calcYdLn(int fieldPos) {
+    private int calcYdLn(int fieldPos) {
+        int yardline = ydLn;
         if ((fieldPos < (fieldSize/2)) && (fieldPos > 0) && (oppTerFlag== 1)) {
-            ydLn = fieldPos;
-            fieldPos = (fieldSize/2) - (ydLn - (fieldSize/2));
-        } else if ((fieldPos < (fieldSize/2)) && (fieldPos > 0))
-            ydLn = fieldPos * -1;
+            yardline = fieldPos;
+            fieldPos = (fieldSize/2) - (yardline - (fieldSize/2));
+        }
+        if ((fieldPos < (fieldSize/2)) && (fieldPos > 0))
+            yardline = fieldPos * -1;
         else if (fieldPos >= (fieldSize/2))
-            ydLn = (fieldSize/2) - (fieldPos - (fieldSize/2));
+            yardline = (fieldSize/2) - (fieldPos - (fieldSize/2));
+
+        return yardline;
     }
 
     private String getResult() {
@@ -1678,7 +1718,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 downNum = 0;
                 dist = 0;
                 fieldPos = 0;
-                calcYdLn(fieldPos);
+                ydLn = calcYdLn(fieldPos);
                 break;
             case "Penalty":
                 if (safetyFlag) {
