@@ -15,4 +15,8 @@
         android:title="Save Game"
         app:showAsAction="ifRoom"/>
 
+    <item android:id="@+id/exitGameButton"
+        android:title="Exit Game"
+        app:showAsAction="never"/>
+
 </menu>
