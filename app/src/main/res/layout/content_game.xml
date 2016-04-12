@@ -186,7 +186,7 @@
         <RelativeLayout
             android:id="@+id/scrollRelLayout"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="5dp"
             android:gravity="fill_vertical"
             android:orientation="vertical" >
 

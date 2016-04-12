@@ -62,7 +62,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     String csvDeffawaystatslist = "away_defensive_stats_list.csv";
     FileOutputStream outputStream;
     String hometeamname = "", awayteamname = "", gameName = "", division = "";
-    Integer fieldSize = 100, playerNumber = 0, recNumber = 0, defNumber = 0, tacklerNumber = 0, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
+    Integer fieldSize = 100, playerNumber = -1, recNumber = -1, defNumber = -1, tacklerNumber = -1, ydLn = 0, gnLs = 0, fieldPos = 0, playCounter = 0,
             downNum = 0, dist = 0, qtr = 1, fgDistance = 0, prevDown = 0, prevDist = 0, returnYds = 0, day, month, year, firstDn = 0;
     Integer returnFlag,oppTerFlag;
     boolean interceptionFlag = false, fumbleFlag = false, incompleteFlag = false, touchdownFlag = false, defensivePenalty = false,
@@ -452,7 +452,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         tempDefTeam = getDefensiveTeam();
 
         //creating the players if they do not previously exist
-        if (playerNumber != 0) {
+        if (playerNumber != -1) {
             currentPlayer = tempOffTeam.getPlayer(playerNumber);
 
             if (currentPlayer == null) {
@@ -460,7 +460,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 tempOffTeam.addPlayer(currentPlayer);
             }
 
-            if (recNumber != 0) {
+            if (recNumber != -1) {
                 recPlayer = tempOffTeam.getPlayer(recNumber);
 
                 if (recPlayer == null) {
@@ -469,7 +469,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 }
             }
 
-            if (tacklerNumber != 0) {
+            if (tacklerNumber != -1) {
                 tacklerPlayer = tempDefTeam.getPlayer(tacklerNumber);
 
                 if (tacklerPlayer == null) {
@@ -478,7 +478,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 }
             }
 
-            if (defNumber != 0) {
+            if (defNumber != -1) {
                 defPlayer = tempDefTeam.getPlayer(defNumber);
 
                 if (defPlayer == null) {
@@ -490,34 +490,34 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             switch (playType) {
                 case "Pass":
                     tempOffTeam.getPlayer(playerNumber).updatePassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
-                    if (tackleflag && (tacklerNumber != 0))
+                    if (tackleflag && (tacklerNumber != -1))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                    if (!interceptionFlag && !incompleteFlag && (recNumber != 0))
+                    if (!interceptionFlag && !incompleteFlag && (recNumber != -1))
                         tempOffTeam.getPlayer(recNumber).updateRecStats(gnLs, fumbleFlag, touchdownFlag);
-                    if ((interceptionFlag || fumbleRecFlag) && (defNumber != 0))
+                    if ((interceptionFlag || fumbleRecFlag) && (defNumber != -1))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(interceptionFlag, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "Run":
                     tempOffTeam.getPlayer(playerNumber).updateRunStats(gnLs, fumbleFlag, touchdownFlag);
-                    if (tackleflag && (tacklerNumber != 0))
+                    if (tackleflag && (tacklerNumber != -1))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                    if (fumbleRecFlag && (defNumber != 0))
+                    if (fumbleRecFlag && (defNumber != -1))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(false, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "Field Goal":
                     break;
                 case "Kickoff":
                     tempOffTeam.getPlayer(playerNumber).updateKickRetStats(returnYds, fumbleFlag, touchdownFlag);
-                    if (tackleflag && (tacklerNumber != 0))
+                    if (tackleflag && (tacklerNumber != -1))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                    if (fumbleRecFlag && (defNumber != 0))
+                    if (fumbleRecFlag && (defNumber != -1))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "Punt":
                     tempOffTeam.getPlayer(playerNumber).updatePuntRetStats(returnYds, fumbleFlag, touchdownFlag);
-                    if (tackleflag && (tacklerNumber != 0))
+                    if (tackleflag && (tacklerNumber != -1))
                         tempDefTeam.getPlayer(tacklerNumber).updateDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                    if (fumbleRecFlag && (defNumber != 0))
+                    if (fumbleRecFlag && (defNumber != -1))
                         tempDefTeam.getPlayer(defNumber).updateDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                     break;
                 case "PAT":
@@ -547,39 +547,39 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
         switch (playType) {
             case "Pass":
-                if (playerNumber != 0)
+                if (playerNumber != -1)
                     tempOffTeam.getPlayer(playerNumber).undoPassStats(gnLs, interceptionFlag, incompleteFlag, touchdownFlag, fumbleFlag);
-                if (tackleflag && (tacklerNumber != 0))
+                if (tackleflag && (tacklerNumber != -1))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                if ((!interceptionFlag && !incompleteFlag) && (recNumber != 0))
+                if ((!interceptionFlag && !incompleteFlag) && (recNumber != -1))
                     tempOffTeam.getPlayer(recNumber).undoRecStats(gnLs, fumbleFlag, touchdownFlag);
-                if ((interceptionFlag || fumbleRecFlag) && (defNumber != 0))
+                if ((interceptionFlag || fumbleRecFlag) && (defNumber != -1))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(interceptionFlag, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Run":
-                if (playerNumber != 0)
+                if (playerNumber != -1)
                     tempOffTeam.getPlayer(playerNumber).undoRunStats(gnLs, fumbleFlag, touchdownFlag);
-                if (tackleflag && (tacklerNumber != 0))
+                if (tackleflag && (tacklerNumber != -1))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, lossFlag, false, fumbleFlag, sackflag, false);
-                if (fumbleRecFlag && (defNumber != 0))
+                if (fumbleRecFlag && (defNumber != -1))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(false, false, lossFlag, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Field Goal":
                 break;
             case "Kickoff":
-                if (playerNumber != 0)
+                if (playerNumber != -1)
                     tempOffTeam.getPlayer(playerNumber).undoKickRetStats(returnYds, fumbleFlag, touchdownFlag);
-                if (tackleflag && (tacklerNumber != 0))
+                if (tackleflag && (tacklerNumber != -1))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                if (fumbleRecFlag && (defNumber != 0))
+                if (fumbleRecFlag && (defNumber != -1))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "Punt":
-                if (playerNumber != 0)
+                if (playerNumber != -1)
                     tempOffTeam.getPlayer(playerNumber).undoPuntRetStats(returnYds, fumbleFlag, touchdownFlag);
-                if (tackleflag && (tacklerNumber != 0))
+                if (tackleflag && (tacklerNumber != -1))
                     tempDefTeam.getPlayer(tacklerNumber).undoDefStats(false, tackleflag, false, false, fumbleFlag, false, false);
-                if (fumbleRecFlag && (defNumber != 0))
+                if (fumbleRecFlag && (defNumber != -1))
                     tempDefTeam.getPlayer(defNumber).undoDefStats(false, false, false, fumbleRecFlag, false, false, touchdownFlag);
                 break;
             case "PAT":
@@ -639,10 +639,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     }
 
     private void resetValues() {
-        playerNumber = 0;
-        recNumber = 0;
-        defNumber = 0;
-        tacklerNumber = 0;
+        playerNumber = -1;
+        recNumber = -1;
+        defNumber = -1;
+        tacklerNumber = -1;
         gnLs=0;
         incompleteFlag=false;
         interceptionFlag=false;
@@ -766,17 +766,18 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         endOfGame=false;
         if (possFlag != homeTeamOpeningKickoff)
             changePossession();
-        playerNumber = 0;
+        playerNumber = -1;
         playType = "";
         qtr = 1;
-        recNumber = 0;
+        recNumber = -1;
+        defNumber = -1;
         returnFlag = 0;
         firstDn = 0;
         result = "";
         fumbleRecFlag=false;
         tackleflag=false;
         sackflag=false;
-        tacklerNumber = 0;
+        tacklerNumber = -1;
         lossFlag=false;
         defensivePenalty = false;
         ydLnTextView.setText("YdLn: " + 0);
@@ -836,11 +837,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         AlertDialog.Builder possBuilder = new AlertDialog.Builder(this);
         possBuilder
                 .setMessage("Save Game Before Exiting?")
-                .setNeutralButton("Save Game", new DialogInterface.OnClickListener() {
+                .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        saveGame();
-                        finish();
+                        dialog.cancel();
                     }
                 })
                 .setNegativeButton("Don't Save", new DialogInterface.OnClickListener() {
@@ -849,10 +849,11 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                         finish();
                     }
                 })
-                .setPositiveButton("Cancel", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Save Game", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
+                        saveGame();
+                        finish();
                     }
                 })
                 .show();
@@ -880,7 +881,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     }
 
     Integer intParse(String word) {
-        Integer number = 0;
+        Integer number = -1;
 
         switch (word) {
             case "won":
@@ -1435,7 +1436,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     else
                         defNumber = intParse(curWord);
                 }
-                else if (tackleflag || (recNumber != 0)) {
+                else if (tackleflag || (recNumber != -1)) {
                     tacklerNumber = intParse(curWord);
                 }
                 else if (recFlag) {
@@ -1475,7 +1476,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
             }
 
             if (Objects.equals(curWord, "punt") || Objects.equals(curWord, "punts") || Objects.equals(curWord, "punted") || Objects.equals(curWord, "punch") || curWord.equals("put")
-                    || curWord.equals("points")) {
+                    || curWord.equals("points") || curWord.equals("hunt") || curWord.equals("hunts") || curWord.equals("bunt") || curWord.equals("bunts")
+                    || curWord.equals("hunted") || curWord.equals("bunted")) {
 
                 playType = "Punt";
                 twowordsago = prevWord;
@@ -1659,7 +1661,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                     dist = 10;
                 }
                 else {
-                    if (recNumber == 0)
+                    if (recNumber == -1)
                         playResult = "Number " + String.valueOf(playerNumber) + " pass incomplete";
                     else
                         playResult = "Number " + String.valueOf(playerNumber) + " pass incomplete to number " + String.valueOf(recNumber);
