@@ -1,5 +1,6 @@
 package com.kerbysoft.qwikcut.speakstats;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -7,12 +8,15 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.RecognitionService;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
@@ -46,7 +50,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     static final String logtag = "MyLogTag";
     private String homeName = "", awayName = "", fieldsize = "", division = "", dayString = "", monthString = "", yearString = "";
+    int which = -1;
     String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/";
+    private static final int REQUEST_WRITE_STORAGE = 112;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         actionBar.setTitle("SpeakStats");
         setSupportActionBar(actionBar);
 
+        checkPerm();
+
     }
 
     public void onClick(View v) {
@@ -80,6 +88,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
 
+        }
+
+    }
+
+    private void checkPerm(){
+
+        boolean hasPermission = (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        if (!hasPermission) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_WRITE_STORAGE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode)
+        {
+            case REQUEST_WRITE_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    //reload my activity with permission granted or use the features what required the permission
+                } else
+                {
+                    Toast.makeText(getApplicationContext(), "The app was not allowed to write to your storage. Hence, it cannot function properly. Please consider granting it this permission", Toast.LENGTH_LONG).show();
+                }
+            }
         }
 
     }
@@ -148,7 +185,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void openGame() {
 
-        List<File> files = getListFolders(new File(dirPath));
+        File directory = new File(dirPath);
+        if (!directory.exists()) {
+            Toast t = Toast.makeText(getApplicationContext(), "There are no saved games to open.", Toast.LENGTH_SHORT);
+            t.show();
+            return;
+        }
+        final List<File> files = getListFolders(directory);
+
+        if (files.size() == 0) {
+            Toast t = Toast.makeText(getApplicationContext(), "There are no saved games to open.", Toast.LENGTH_SHORT);
+            t.show();
+            return;
+        }
 
         final String[] pastGames = new String[files.size()];
         final String[] gameInfo = new String[files.size()];
@@ -173,32 +222,92 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Select a Game to Open");
 
-        builder.setItems(gameInfo, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                // The 'which' argument contains the index position
-                // of the selected item
-                String gameDir = dirPath + pastGames[which];
-                fbGame selected = games.get(which);
+        builder.setSingleChoiceItems(gameInfo, -1,  new DialogInterface.OnClickListener() {
 
-                Intent intent = new Intent(MainActivity.this, Game.class);
-                intent.putExtra("gameDir", gameDir);
-                intent.putExtra("openingPastGame", "true");
-                intent.putExtra("gameName", pastGames[which]);
-                intent.putExtra("homeName", selected.homeTeam);
-                intent.putExtra("awayName", selected.awayTeam);
-                intent.putExtra("division", selected.division);
-                intent.putExtra("day", selected.day);
-                intent.putExtra("month", selected.month);
-                intent.putExtra("year", selected.year);
-                startActivity(intent);
+            @Override
+            public void onClick(DialogInterface arg0, int arg1) {
+
+                which = arg1;
+
             }
         });
+
+        builder.setPositiveButton("Open Game", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // The 'which' argument contains the index position
+                // of the selected item
+                if (which == -1) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Select a game.", Toast.LENGTH_SHORT);
+                    t.show();
+                }
+
+                else {
+                    String gameDir = dirPath + pastGames[which];
+                    fbGame selected = games.get(which);
+
+                    Intent intent = new Intent(MainActivity.this, Game.class);
+                    intent.putExtra("gameDir", gameDir);
+                    intent.putExtra("openingPastGame", "true");
+                    intent.putExtra("gameName", pastGames[which]);
+                    intent.putExtra("homeName", selected.homeTeam);
+                    intent.putExtra("awayName", selected.awayTeam);
+                    intent.putExtra("division", selected.division);
+                    intent.putExtra("day", selected.day);
+                    intent.putExtra("month", selected.month);
+                    intent.putExtra("year", selected.year);
+                    startActivity(intent);
+                }
+            }
+        });
+
+        builder.setNegativeButton("Delete Game", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                if (which == -1) {
+                    Toast t = Toast.makeText(getApplicationContext(), "Select a game.", Toast.LENGTH_SHORT);
+                    t.show();
+                }
+                deleteConfirmDialog(files.get(which));
+            }
+        });
+
         AlertDialog alertDialog = builder.create();
         ListView listView = alertDialog.getListView();
         listView.setDivider(new ColorDrawable(Color.parseColor("#006400"))); // set color
         listView.setDividerHeight(4);
 
         alertDialog.show();
+    }
+
+    private void deleteConfirmDialog(final File dir) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder
+                .setMessage("Are you sure you want to delete the selected game?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        DeleteRecursive(dir);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                })
+                .show();
+    }
+
+    void DeleteRecursive(File fileOrDirectory) {
+
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+                DeleteRecursive(child);
+
+        fileOrDirectory.delete();
+
     }
 
     private List<File> getListFolders(File parentDir) {

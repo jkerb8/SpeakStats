@@ -96,7 +96,8 @@
         android:layout_alignBottom="@+id/mainPlayerView"
         android:background="@android:color/transparent"
         android:gravity="end"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="20dp"
+        android:inputType="number"/>
 
     <EditText style="@android:style/TextAppearance.Small"
         android:layout_width="fill_parent"
@@ -107,7 +108,8 @@
         android:layout_alignBottom="@+id/receiverView"
         android:gravity="end"
         android:background="@android:color/transparent"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="20dp"
+        android:inputType="number"/>
 
     <EditText style="@android:style/TextAppearance.Small"
         android:layout_width="fill_parent"
@@ -118,7 +120,8 @@
         android:layout_alignBottom="@+id/downView"
         android:gravity="end"
         android:background="@android:color/transparent"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="20dp"
+        android:inputType="number"/>
 
     <EditText style="@android:style/TextAppearance.Small"
         android:layout_width="fill_parent"
@@ -129,7 +132,8 @@
         android:layout_alignBottom="@+id/distanceView"
         android:gravity="end"
         android:background="@android:color/transparent"
-        android:layout_marginRight="20dp" />
+        android:layout_marginRight="20dp"
+        android:inputType="number"/>
 
     <EditText style="@android:style/TextAppearance.Small"
         android:layout_width="fill_parent"
@@ -140,7 +144,8 @@
         android:layout_alignBottom="@+id/ydLnView"
         android:gravity="end"
         android:background="@android:color/transparent"
-        android:layout_marginRight="20dp" />
+        android:layout_marginRight="20dp"
+        android:inputType="number"/>
 
     <EditText style="@android:style/TextAppearance.Small"
         android:layout_width="fill_parent"
@@ -151,7 +156,8 @@
         android:layout_alignBottom="@+id/gnLsView"
         android:gravity="end"
         android:background="@android:color/transparent"
-        android:layout_marginRight="20dp" />
+        android:layout_marginRight="20dp"
+        android:inputType="number"/>
 
     <EditText
         android:id="@+id/notesEditText"
