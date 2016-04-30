@@ -1,12 +1,13 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:layout_above="@+id/textView1"
     android:layout_toLeftOf="@+id/textView1"
-    android:gravity="center"
+
     android:orientation="vertical"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:background="@drawable/main_background_image">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/actionBar"
@@ -14,6 +15,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
+        android:layout_alignParentTop="true"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
 
     <Button
@@ -23,6 +25,7 @@
         android:layout_margin="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
+        android:layout_below="@id/actionBar"
         android:text="New Game"
         android:layout_gravity="center_horizontal" />
 
@@ -33,6 +36,7 @@
         android:layout_margin="10dp"
         android:layout_marginRight="10dp"
         android:text="Open Game"
+        android:layout_below="@id/newGameBtn"
         android:layout_gravity="center_horizontal" />
 
-</LinearLayout>
+</RelativeLayout>

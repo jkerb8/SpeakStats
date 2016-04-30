@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String homeName = "", awayName = "", fieldsize = "", division = "", dayString = "", monthString = "", yearString = "";
     int which = -1;
     String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SpeakStats/";
+    String themeColor = "#6d9e31";
     private static final int REQUEST_WRITE_STORAGE = 112;
 
     @Override
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Toolbar actionBar = (Toolbar) findViewById(R.id.actionBar);
         actionBar.setTitle("SpeakStats");
+        actionBar.setTitleTextColor(Color.WHITE);
+        actionBar.setBackgroundColor(Color.parseColor(themeColor));
         setSupportActionBar(actionBar);
 
         checkPerm();
@@ -221,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Select a Game to Open");
+        //builder.set
 
         builder.setSingleChoiceItems(gameInfo, -1,  new DialogInterface.OnClickListener() {
 
@@ -274,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         AlertDialog alertDialog = builder.create();
         ListView listView = alertDialog.getListView();
-        listView.setDivider(new ColorDrawable(Color.parseColor("#006400"))); // set color
+        listView.setDivider(new ColorDrawable(Color.parseColor(themeColor))); // set color
         listView.setDividerHeight(4);
 
         alertDialog.show();
